@@ -2,59 +2,55 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Overlays</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-        .card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        button { cursor: pointer; padding: 10px; margin: 5px; }
-        .btn-show { background: #2ecc71; color: white; border: none; }
-        .btn-hide { background: #e74c3c; color: white; border: none; }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        .panel { background: #1e1e1e; border-radius: 12px; padding: 20px; max-width: 400px; margin: auto; }
+        input, select { 
+            width: 100%; padding: 12px; margin: 10px 0; 
+            border-radius: 6px; border: 1px solid #333; background: #252525; color: white;
+            box-sizing: border-box;
+        }
+        .btn-group { display: flex; gap: 10px; }
+        button { 
+            flex: 1; padding: 15px; border-radius: 6px; border: none; 
+            font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .btn-on { background: #2ecc71; color: white; }
+        .btn-off { background: #e74c3c; color: white; }
+        button:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h3>Marcador de Fútbol</h3>
-        Local: <input type="text" id="t1-name" value="LOCAL"> 
-        Goles: <input type="number" id="t1-score" value="0"><br><br>
-        Visita: <input type="text" id="t2-name" value="VISITA"> 
-        Goles: <input type="number" id="t2-score" value="0"><br><br>
-        <button class="btn-show" onclick="updateScore('show')">MOSTRAR / ACTUALIZAR</button>
-        <button class="btn-hide" onclick="updateScore('hide')">OCULTAR</button>
-    </div>
+    <div class="panel">
+        <h2>Control de Zócalo</h2>
+        
+        <label>Título:</label>
+        <input type="text" id="title" placeholder="Ej: GOOOL DE MESSI">
+        
+        <label>Subtítulo:</label>
+        <input type="text" id="sub" placeholder="Ej: Minuto 23'">
+        
+        <label>Color de Acento:</label>
+        <input type="color" id="color" value="#e74c3c">
 
-    <div class="card">
-        <h3>Zócalo (Lower Third)</h3>
-        Título: <input type="text" id="lt-title" value="GOOOOL!"><br>
-        Sub: <input type="text" id="lt-sub" value="Minuto 45' - Lionel Messi"><br><br>
-        <button class="btn-show" onclick="updateLT('show')">MOSTRAR</button>
-        <button class="btn-hide" onclick="updateLT('hide')">OCULTAR</button>
+        <div class="btn-group">
+            <button class="btn-on" onclick="send('show')">MOSTRAR</button>
+            <button class="btn-off" onclick="send('hide')">OCULTAR</button>
+        </div>
     </div>
 
     <script>
-        const bc = new BroadcastChannel('obs_market');
+        const bc = new BroadcastChannel('overlay_channel');
 
-        function updateScore(action) {
+        function send(action) {
             bc.postMessage({
-                type: 'score',
                 action: action,
-                data: {
-                    t1Name: document.getElementById('t1-name').value,
-                    t1Score: document.getElementById('t1-score').value,
-                    t2Name: document.getElementById('t2-name').value,
-                    t2Score: document.getElementById('t2-score').value
-                }
-            });
-        }
-
-        function updateLT(action) {
-            bc.postMessage({
-                type: 'lt',
-                action: action,
-                data: {
-                    title: document.getElementById('lt-title').value,
-                    sub: document.getElementById('lt-sub').value
-                }
+                title: document.getElementById('title').value,
+                sub: document.getElementById('sub').value,
+                color: document.getElementById('color').value
             });
         }
     </script>

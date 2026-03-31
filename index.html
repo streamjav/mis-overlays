@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Overlay Output</title>
+    <style>
+        body { background: transparent; overflow: hidden; font-family: 'Arial', sans-serif; }
+        
+        /* Contenedor del Marcador */
+        #scoreboard {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            display: flex;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            transform: translateX(-200%);
+            transition: transform 0.5s ease-out;
+        }
+
+        #scoreboard.active { transform: translateX(0); }
+
+        .team { padding: 0 15px; font-weight: bold; }
+        .score { background: #f1c40f; color: black; padding: 0 10px; border-radius: 3px; }
+
+        /* Lower Third (Zócalo) */
+        #lower-third {
+            position: absolute;
+            bottom: 10%;
+            left: 5%;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        #lower-third.active { opacity: 1; transform: translateY(0); }
+
+        .bar {
+            background: linear-gradient(90deg, #2c3e50, #2980b9);
+            color: white;
+            padding: 15px 40px;
+            border-left: 10px solid #e74c3c;
+            clip-path: polygon(0 0, 95% 0, 100% 100%, 5% 100%);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="scoreboard">
+        <div class="team" id="t1-name">LOCAL</div>
+        <div class="score" id="t1-score">0</div>
+        <div style="margin: 0 10px;">vs</div>
+        <div class="score" id="t2-score">0</div>
+        <div class="team" id="t2-name">VISITA</div>
+    </div>
+
+    <div id="lower-third">
+        <div class="bar">
+            <h2 id="lt-title" style="margin:0;">TITULO</h2>
+            <small id="lt-sub">Subtítulo del evento</small>
+        </div>
+    </div>
+
+    <script>
+        const bc = new BroadcastChannel('obs_market');
+
+        bc.onmessage = (event) => {
+            const { type, data, action } = event.data;
+
+            if (type === 'score') {
+                document.getElementById('t1-name').innerText = data.t1Name;
+                document.getElementById('t1-score').innerText = data.t1Score;
+                document.getElementById('t2-name').innerText = data.t2Name;
+                document.getElementById('t2-score').innerText = data.t2Score;
+                
+                if(action === 'show') document.getElementById('scoreboard').classList.add('active');
+                if(action === 'hide') document.getElementById('scoreboard').classList.remove('active');
+            }
+
+            if (type === 'lt') {
+                document.getElementById('lt-title').innerText = data.title;
+                document.getElementById('lt-sub').innerText = data.sub;
+                
+                if(action === 'show') document.getElementById('lower-third').classList.add('active');
+                if(action === 'hide') document.getElementById('lower-third').classList.remove('active');
+            }
+        };
+    </script>
+</body>
+</html>

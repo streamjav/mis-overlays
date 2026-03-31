@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <title>Master Control PRO - Persistent</title>
+    <title>Master Mobile Control PRO</title>
     <style>
         body { font-family: sans-serif; background: #0d1117; color: white; padding: 15px; margin: 0; padding-bottom: 80px; }
         .card { background: #161b22; padding: 15px; border-radius: 12px; border: 1px solid #30363d; margin-bottom: 15px; }
@@ -60,9 +60,9 @@
     </div>
 
     <div class="card">
-        <label>LOGOS (URL PNG)</label>
-        <input type="text" id="logo-l" placeholder="URL Logo Local" oninput="updateAll()">
-        <input type="text" id="logo-v" placeholder="URL Logo Visita" oninput="updateAll()">
+        <label>LOGOS (URL PNG/JPG)</label>
+        <input type="text" id="logo-l" placeholder="Deja vacío para ocultar logo Local" oninput="updateAll()">
+        <input type="text" id="logo-v" placeholder="Deja vacío para ocultar logo Visita" oninput="updateAll()">
         <label style="margin-top:10px; display:block;">COLOR DE MARCA</label>
         <input type="color" id="color-picker" value="#00ff88" oninput="updateAll()">
     </div>
@@ -75,14 +75,8 @@
     <script>
         const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-        
-        let state = {
-            scoreL: 0,
-            scoreV: 0,
-            isRunning: false
-        };
+        let state = { scoreL: 0, scoreV: 0 };
 
-        // 1. CARGAR DATOS AL INICIAR
         window.onload = () => {
             const saved = localStorage.getItem(ID_UNICO);
             if (saved) {
@@ -102,14 +96,13 @@
 
         client.on('connect', () => {
             document.getElementById('mqtt-status').innerText = "🟢 NUBE CONECTADA";
-            updateAll(); // Sincronizar vMix al conectar
+            updateAll();
         });
 
         function changeScore(team, val) {
             if(team === 'l') state.scoreL = Math.max(0, state.scoreL + val);
             if(team === 'v') state.scoreV = Math.max(0, state.scoreV + val);
-            updateDisplay();
-            updateAll();
+            updateDisplay(); updateAll();
         }
 
         function updateDisplay() {
@@ -128,11 +121,7 @@
                 extra: document.getElementById('extra-min').value,
                 color: document.getElementById('color-picker').value
             };
-
-            // GUARDAR EN DISCO LOCAL
             localStorage.setItem(ID_UNICO, JSON.stringify(currentData));
-
-            // ENVIAR A VMIX
             client.publish(ID_UNICO, JSON.stringify({ type: 'update_info', data: currentData }));
         }
 
@@ -141,17 +130,12 @@
             updateAll();
         }
 
-        function sendUI(action) {
-            client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } }));
-        }
+        function sendUI(action) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } })); }
 
         function resetFull() {
             if(confirm("¿Reiniciar todo el partido a 0?")) {
-                state.scoreL = 0;
-                state.scoreV = 0;
-                sendClock('reset');
-                updateDisplay();
-                updateAll();
+                state.scoreL = 0; state.scoreV = 0;
+                sendClock('reset'); updateDisplay(); updateAll();
             }
         }
     </script>

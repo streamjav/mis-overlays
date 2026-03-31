@@ -7,6 +7,7 @@
     <style>
         :root { --bg-dark: rgba(10, 10, 10, 0.95); --accent: #00ff88; --glass: rgba(255, 255, 255, 0.1); }
         body { margin: 0; padding: 0; overflow: hidden; background: transparent; font-family: 'Roboto Condensed', sans-serif; }
+        
         #scoreboard {
             position: absolute; top: 40px; left: 50px; display: flex; align-items: stretch; height: 55px;
             filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));
@@ -14,10 +15,20 @@
         }
         #scoreboard.active { transform: translateY(0); }
         .block { background: var(--bg-dark); display: flex; align-items: center; color: white; padding: 0 15px; border-right: 1px solid var(--glass); }
-        .logo-box { background: white; padding: 5px; width: 50px; display: flex; justify-content: center; align-items: center; }
-        .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .team-name { font-size: 24px; text-transform: uppercase; min-width: 120px; justify-content: center; letter-spacing: 1px; }
-        .score-box { background: var(--accent); color: black; font-size: 36px; font-weight: 900; width: 60px; justify-content: center; }
+        
+        /* Logos Dinámicos: Eliminamos el contenedor cuadrado blanco por defecto */
+        .logo-box { background: white; padding: 0; display: none; justify-content: center; align-items: center; aspect-ratio: 1 / 1; }
+        
+        /* Ajuste de Logo a Sangre */
+        .logo-box img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Nombres Expansibles: Añadimos flexibilidad */
+        .team-name { font-size: 24px; text-transform: uppercase; min-width: 120px; justify-content: center; letter-spacing: 1px; flex-grow: 1; }
+        
+        /* Score con Línea Divisoria */
+        .score-box { background: var(--accent); color: black; font-size: 36px; font-weight: 900; width: 60px; justify-content: center; position: relative; }
+        #score-l { border-right: 2px solid white; /* Línea divisoria nítida */ }
+        
         .timer-box { background: #1a1a1a; min-width: 130px; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 38px; position: relative; border-right: none; }
         #extra-time-label { position: absolute; bottom: -28px; right: 0; background: var(--accent); color: black; font-size: 18px; padding: 2px 10px; font-weight: bold; display: none; }
         .separator { width: 4px; background: var(--accent); }
@@ -26,13 +37,14 @@
 <body>
 
     <div id="scoreboard">
-        <div class="logo-box"><img id="logo-l" src="" alt=""></div>
+        <div class="logo-box" id="logo-box-l"><img id="logo-l" src="" alt="" onerror="hideLogo('l')"></div>
         <div class="block team-name" id="name-l">LOCAL</div>
         <div class="block score-box" id="score-l">0</div>
-        <div class="separator"></div>
+        
         <div class="block score-box" id="score-v">0</div>
         <div class="block team-name" id="name-v">VISITA</div>
-        <div class="logo-box"><img id="logo-v" src="" alt=""></div>
+        <div class="logo-box" id="logo-box-v"><img id="logo-v" src="" alt="" onerror="hideLogo('v')"></div>
+        
         <div class="block timer-box">
             <span id="clock">00:00</span>
             <div id="extra-time-label">+0</div>
@@ -42,12 +54,8 @@
     <script>
         const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-        let seconds = 0;
-        let timerInterval = null;
-        let limitMinutes = 45;
-        let extraMinutes = 0;
+        let seconds = 0; let timerInterval = null; let limitMinutes = 45; let extraMinutes = 0;
 
-        // Cargar últimos datos recibidos del disco (si existen)
         window.onload = () => {
             const saved = localStorage.getItem(ID_UNICO + "_output");
             if(saved) applyData(JSON.parse(saved));
@@ -77,11 +85,39 @@
             document.getElementById('name-v').innerText = data.nameV;
             document.getElementById('score-l').innerText = data.scoreL;
             document.getElementById('score-v').innerText = data.scoreV;
-            document.getElementById('logo-l').src = data.logoL;
-            document.getElementById('logo-v').src = data.logoV;
+            
+            updateLogo('l', data.logoL);
+            updateLogo('v', data.logoV);
+            
             document.documentElement.style.setProperty('--accent', data.color);
             limitMinutes = parseInt(data.limit);
             extraMinutes = parseInt(data.extra);
+            updateExtraLabel();
+        }
+
+        // Lógica Dinámica de Logos
+        function updateLogo(team, url) {
+            const logoBox = document.getElementById('logo-box-' + team);
+            const logoImg = document.getElementById('logo-' + team);
+            
+            if (!url || url.trim() === '') {
+                // Ocultar si está vacío
+                logoBox.style.display = 'none';
+                logoImg.src = '';
+            } else {
+                // Mostrar si hay URL
+                logoBox.style.display = 'flex';
+                logoImg.src = url;
+            }
+        }
+
+        // Fallback en caso de que la imagen de la URL no cargue
+        function hideLogo(team) {
+            const logoBox = document.getElementById('logo-box-' + team);
+            logoBox.style.display = 'none';
+        }
+
+        function updateExtraLabel() {
             const extraLabel = document.getElementById('extra-time-label');
             if (extraMinutes > 0) {
                 extraLabel.innerText = `+${extraMinutes}`;
@@ -93,15 +129,12 @@
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 const totalLimitSeconds = (limitMinutes + extraMinutes) * 60;
-                if (seconds < totalLimitSeconds) {
-                    seconds++;
-                    updateClockDisplay();
-                } else { clearInterval(timerInterval); }
+                if (seconds < totalLimitSeconds) { seconds++; updateClockDisplay(); } 
+                else { clearInterval(timerInterval); }
             }, 1000);
         }
 
         function resetClock() { clearInterval(timerInterval); seconds = 0; updateClockDisplay(); }
-
         function updateClockDisplay() {
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
             const s = (seconds % 60).toString().padStart(2, '0');

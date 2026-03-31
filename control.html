@@ -3,55 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Overlays</title>
+    <title>PRO Control Center</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
-        .panel { background: #1e1e1e; border-radius: 12px; padding: 20px; max-width: 400px; margin: auto; }
-        input, select { 
-            width: 100%; padding: 12px; margin: 10px 0; 
-            border-radius: 6px; border: 1px solid #333; background: #252525; color: white;
-            box-sizing: border-box;
+        body { font-family: 'Segoe UI', sans-serif; background: #0f1216; color: #ececec; display: flex; justify-content: center; padding: 40px; }
+        .console { background: #1c2128; border: 1px solid #30363d; border-radius: 12px; width: 100%; max-width: 500px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        h2 { border-bottom: 2px solid #30363d; padding-bottom: 15px; color: #58a6ff; }
+        
+        .field { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-size: 12px; text-transform: uppercase; color: #8b949e; }
+        input { 
+            width: 100%; background: #0d1117; border: 1px solid #30363d; padding: 12px; 
+            color: white; border-radius: 6px; box-sizing: border-box; font-size: 16px;
         }
-        .btn-group { display: flex; gap: 10px; }
+        
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
         button { 
-            flex: 1; padding: 15px; border-radius: 6px; border: none; 
-            font-weight: bold; cursor: pointer; transition: 0.2s;
+            padding: 15px; border-radius: 8px; border: none; cursor: pointer; 
+            font-weight: bold; text-transform: uppercase; transition: 0.3s;
         }
-        .btn-on { background: #2ecc71; color: white; }
-        .btn-off { background: #e74c3c; color: white; }
-        button:active { transform: scale(0.95); }
+        .btn-air { background: #238636; color: white; }
+        .btn-air:hover { background: #2ea043; box-shadow: 0 0 20px rgba(46, 160, 67, 0.4); }
+        
+        .btn-off { background: #da3633; color: white; }
+        .btn-off:hover { background: #f85149; box-shadow: 0 0 20px rgba(248, 81, 73, 0.4); }
+
+        .presets { display: flex; gap: 10px; margin-top: 20px; }
+        .preset-chip { background: #30363d; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="panel">
-        <h2>Control de Zócalo</h2>
+    <div class="console">
+        <h2>STUDIO OVERLAY CONTROL</h2>
         
-        <label>Título:</label>
-        <input type="text" id="title" placeholder="Ej: GOOOL DE MESSI">
-        
-        <label>Subtítulo:</label>
-        <input type="text" id="sub" placeholder="Ej: Minuto 23'">
-        
-        <label>Color de Acento:</label>
-        <input type="color" id="color" value="#e74c3c">
+        <div class="field">
+            <label>Badge Superior (Ej: LIVE, GOL, INFO)</label>
+            <input type="text" id="badge" value="EN VIVO">
+        </div>
 
-        <div class="btn-group">
-            <button class="btn-on" onclick="send('show')">MOSTRAR</button>
-            <button class="btn-off" onclick="send('hide')">OCULTAR</button>
+        <div class="field">
+            <label>Título Principal (Bebas Neue)</label>
+            <input type="text" id="title" placeholder="Nombre del Jugador o Noticia">
+        </div>
+
+        <div class="field">
+            <label>Subtítulo</label>
+            <input type="text" id="sub" placeholder="Información adicional">
+        </div>
+
+        <div class="field">
+            <label>Color de Marca</label>
+            <input type="color" id="color" value="#ff004c">
+        </div>
+
+        <div class="presets">
+            <span class="preset-chip" onclick="setPreset('GOL!', 'Lionel Messi', '#ffcc00')">⚽ GOL</span>
+            <span class="preset-chip" onclick="setPreset('ALERTA', 'Cambio en el equipo', '#da3633')">🚨 ALERTA</span>
+            <span class="preset-chip" onclick="setPreset('DATOS', 'Posesión de balón: 60%', '#58a6ff')">📊 INFO</span>
+        </div>
+
+        <div class="controls">
+            <button class="btn-air" onclick="update('show')">PONER AL AIRE</button>
+            <button class="btn-off" onclick="update('hide')">QUITAR</button>
         </div>
     </div>
 
     <script>
-        const bc = new BroadcastChannel('overlay_channel');
+        const bc = new BroadcastChannel('pro_broadcast_system');
 
-        function send(action) {
+        function update(action) {
             bc.postMessage({
                 action: action,
+                badge: document.getElementById('badge').value,
                 title: document.getElementById('title').value,
                 sub: document.getElementById('sub').value,
                 color: document.getElementById('color').value
             });
+        }
+
+        function setPreset(badge, title, color) {
+            document.getElementById('badge').value = badge;
+            document.getElementById('title').value = title;
+            document.getElementById('color').value = color;
         }
     </script>
 </body>

@@ -3,94 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRO Match Control</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <title>Master Mobile Control</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121418; color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: #1c2128; padding: 20px; border-radius: 15px; width: 100%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
-        .row { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
-        .team-ctrl { flex: 1; text-align: center; background: #2d333b; padding: 10px; border-radius: 10px; }
-        
-        input { width: 100%; background: #0d1117; border: 1px solid #444; color: white; padding: 8px; border-radius: 5px; box-sizing: border-box; }
-        
-        /* Botones de Score */
-        .score-btns { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
-        .btn { border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-plus { background: #238636; color: white; font-size: 20px; }
-        .btn-minus { background: #da3633; color: white; }
-        
-        /* Reloj */
-        .clock-ctrl { background: #22272e; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; gap: 10px; }
-        .btn-start { background: #58a6ff; color: white; padding: 15px; font-size: 18px; }
-        .btn-reset { background: #8b949e; color: white; }
+        body { font-family: sans-serif; background: #0d1117; color: white; padding: 15px; margin: 0; }
+        .card { background: #161b22; padding: 15px; border-radius: 12px; border: 1px solid #30363d; margin-bottom: 15px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        input { width: 100%; background: #010409; border: 1px solid #30363d; color: white; padding: 10px; border-radius: 6px; box-sizing: border-box; margin-top: 5px; }
+        .btn { border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; margin-top: 5px; }
+        .btn-green { background: #238636; color: white; }
+        .btn-red { background: #da3633; color: white; }
+        .btn-blue { background: #1f6feb; color: white; }
+        .score-display { font-size: 24px; text-align: center; margin: 10px 0; font-weight: bold; background: #0d1117; padding: 10px; border-radius: 8px; color: #58a6ff; }
+        label { font-size: 12px; color: #8b949e; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2 style="margin-top:0; color:#58a6ff;">CONTROL DE PARTIDO</h2>
-        
-        <div class="row">
-            <div class="team-ctrl">
+        <div class="grid">
+            <div>
                 <label>LOCAL</label>
-                <input type="text" id="name-l" value="LOCAL">
-                <input type="text" id="logo-l" placeholder="URL Logo" value="https://cdn-icons-png.flaticon.com/512/1165/1165230.png">
-                <div class="score-btns">
-                    <button class="btn btn-minus" onclick="changeScore('l', -1)">-</button>
-                    <button class="btn btn-plus" onclick="changeScore('l', 1)">+</button>
-                </div>
+                <input type="text" id="name-l" value="LOCAL" onchange="updateAll()">
+                <button class="btn btn-green" onclick="changeScore('l', 1)">+ GOL</button>
+                <button class="btn btn-red" onclick="changeScore('l', -1)">-1</button>
             </div>
-
-            <div style="font-size: 30px; font-weight: bold;" id="display-score">0 - 0</div>
-
-            <div class="team-ctrl">
+            <div>
                 <label>VISITA</label>
-                <input type="text" id="name-v" value="VISITA">
-                <input type="text" id="logo-v" placeholder="URL Logo" value="https://cdn-icons-png.flaticon.com/512/1165/1165245.png">
-                <div class="score-btns">
-                    <button class="btn btn-minus" onclick="changeScore('v', -1)">-</button>
-                    <button class="btn btn-plus" onclick="changeScore('v', 1)">+</button>
-                </div>
+                <input type="text" id="name-v" value="VISITA" onchange="updateAll()">
+                <button class="btn btn-green" onclick="changeScore('v', 1)">+ GOL</button>
+                <button class="btn btn-red" onclick="changeScore('v', -1)">-1</button>
             </div>
         </div>
+        <div class="score-display" id="display-score">0 - 0</div>
+    </div>
 
-        <div class="row">
-            <div style="flex:1">
-                <label>Tiempo Base (Min)</label>
-                <input type="number" id="limit-min" value="45">
+    <div class="card">
+        <div class="grid">
+            <div>
+                <label>TIEMPO BASE (MIN)</label>
+                <input type="number" id="limit-min" value="45" onchange="updateAll()">
             </div>
-            <div style="flex:1">
-                <label>Tiempo Extra (+Min)</label>
-                <input type="number" id="extra-min" value="0">
-            </div>
-            <div style="flex:1">
-                <label>Color</label>
-                <input type="color" id="color-picker" value="#00ff88">
+            <div>
+                <label>EXTRA (+MIN)</label>
+                <input type="number" id="extra-min" value="0" onchange="updateAll()">
             </div>
         </div>
-
-        <div class="clock-ctrl">
-            <button class="btn btn-start" onclick="sendClock('start')">INICIAR / REANUDAR</button>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-reset" style="flex:1" onclick="sendClock('stop')">PAUSAR</button>
-                <button class="btn btn-reset" style="flex:1" onclick="sendClock('reset')">RESETEAR 00:00</button>
-            </div>
-        </div>
-
-        <div class="row" style="margin-top:20px;">
-            <button class="btn btn-plus" style="flex:1; background:#2ecc71" onclick="sendUI('show')">MOSTRAR EN OBS</button>
-            <button class="btn btn-plus" style="flex:1; background:#e74c3c" onclick="sendUI('hide')">OCULTAR</button>
+        <button class="btn btn-blue" onclick="sendClock('start')">INICIAR RELOJ</button>
+        <div class="grid">
+            <button class="btn" style="background:#30363d; color:white;" onclick="sendClock('stop')">PAUSAR</button>
+            <button class="btn" style="background:#30363d; color:white;" onclick="sendClock('reset')">RESET</button>
         </div>
     </div>
 
-    <script>
-        const bc = new BroadcastChannel('ultra_pro_match');
-        let scoreL = 0;
-        let scoreV = 0;
+    <div class="card">
+        <label>URL LOGOS (PNG)</label>
+        <input type="text" id="logo-l" value="https://cdn-icons-png.flaticon.com/512/1165/1165230.png" onchange="updateAll()">
+        <input type="text" id="logo-v" value="https://cdn-icons-png.flaticon.com/512/1165/1165245.png" onchange="updateAll()">
+        <label>COLOR ACENTO</label>
+        <input type="color" id="color-picker" value="#00ff88" onchange="updateAll()">
+    </div>
 
-        // Sincronizar todo al cambiar cualquier input
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', updateAll);
-        });
+    <button class="btn btn-green" style="position:fixed; bottom:10px; left:10px; width:45%;" onclick="sendUI('show')">MOSTRAR</button>
+    <button class="btn btn-red" style="position:fixed; bottom:10px; right:10px; width:45%;" onclick="sendUI('hide')">OCULTAR</button>
+
+    <script>
+        const ID_UNICO = "marcador_oscar_pro_2024";
+        const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+        let scoreL = 0; let scoreV = 0;
 
         function changeScore(team, val) {
             if(team === 'l') scoreL = Math.max(0, scoreL + val);
@@ -100,7 +80,7 @@
         }
 
         function updateAll() {
-            bc.postMessage({
+            const payload = {
                 type: 'update_info',
                 data: {
                     nameL: document.getElementById('name-l').value,
@@ -113,16 +93,17 @@
                     extra: document.getElementById('extra-min').value,
                     color: document.getElementById('color-picker').value
                 }
-            });
+            };
+            client.publish(ID_UNICO, JSON.stringify(payload));
         }
 
         function sendClock(cmd) {
-            bc.postMessage({ type: 'control_clock', data: { command: cmd } });
-            updateAll(); // Forzar actualización de límites por si se cambiaron antes de iniciar
+            client.publish(ID_UNICO, JSON.stringify({ type: 'control_clock', data: { command: cmd } }));
+            updateAll();
         }
 
         function sendUI(action) {
-            bc.postMessage({ type: 'control_ui', data: { action: action } });
+            client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } }));
         }
     </script>
 </body>

@@ -19,7 +19,7 @@
         .team-name { font-size: 24px; text-transform: uppercase; min-width: 120px; justify-content: center; letter-spacing: 1px; }
         .score-box { background: var(--accent); color: black; font-size: 36px; font-weight: 900; width: 60px; justify-content: center; }
         .timer-box { background: #1a1a1a; min-width: 130px; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 38px; position: relative; border-right: none; }
-        #extra-time-label { position: absolute; bottom: -28px; right: 0; background: var(--accent); color: black; font-size: 18px; padding: 2px 10px; font-weight: bold; display: none; clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%); }
+        #extra-time-label { position: absolute; bottom: -28px; right: 0; background: var(--accent); color: black; font-size: 18px; padding: 2px 10px; font-weight: bold; display: none; }
         .separator { width: 4px; background: var(--accent); }
     </style>
 </head>
@@ -40,56 +40,54 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE CONEXIÓN
-        const ID_UNICO = "marcador_oscar_pro_2024"; // ¡DEBE SER IGUAL EN EL CONTROL!
+        const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-
         let seconds = 0;
         let timerInterval = null;
         let limitMinutes = 45;
         let extraMinutes = 0;
 
-        client.on('connect', () => {
-            console.log("Conectado a la Nube");
-            client.subscribe(ID_UNICO);
-        });
+        // Cargar últimos datos recibidos del disco (si existen)
+        window.onload = () => {
+            const saved = localStorage.getItem(ID_UNICO + "_output");
+            if(saved) applyData(JSON.parse(saved));
+        };
+
+        client.on('connect', () => { client.subscribe(ID_UNICO); });
 
         client.on('message', (topic, message) => {
             const msg = JSON.parse(message.toString());
-            const { type, data } = msg;
-
-            if (type === 'update_info') {
-                document.getElementById('name-l').innerText = data.nameL;
-                document.getElementById('name-v').innerText = data.nameV;
-                document.getElementById('score-l').innerText = data.scoreL;
-                document.getElementById('score-v').innerText = data.scoreV;
-                document.getElementById('logo-l').src = data.logoL;
-                document.getElementById('logo-v').src = data.logoV;
-                document.documentElement.style.setProperty('--accent', data.color);
-                
-                limitMinutes = parseInt(data.limit);
-                extraMinutes = parseInt(data.extra);
-
-                const extraLabel = document.getElementById('extra-time-label');
-                if (extraMinutes > 0) {
-                    extraLabel.innerText = `+${extraMinutes}`;
-                    extraLabel.style.display = 'block';
-                } else {
-                    extraLabel.style.display = 'none';
-                }
+            if (msg.type === 'update_info') {
+                applyData(msg.data);
+                localStorage.setItem(ID_UNICO + "_output", JSON.stringify(msg.data));
             }
-
-            if (type === 'control_ui') {
-                if(data.action === 'show') document.getElementById('scoreboard').classList.add('active');
-                if(data.action === 'hide') document.getElementById('scoreboard').classList.remove('active');
+            if (msg.type === 'control_ui') {
+                if(msg.data.action === 'show') document.getElementById('scoreboard').classList.add('active');
+                else document.getElementById('scoreboard').classList.remove('active');
             }
-
-            if (type === 'control_clock') {
-                if (data.command === 'start') startClock();
-                if (data.command === 'stop') clearInterval(timerInterval);
-                if (data.command === 'reset') resetClock();
+            if (msg.type === 'control_clock') {
+                if (msg.data.command === 'start') startClock();
+                if (msg.data.command === 'stop') clearInterval(timerInterval);
+                if (msg.data.command === 'reset') resetClock();
             }
         });
+
+        function applyData(data) {
+            document.getElementById('name-l').innerText = data.nameL;
+            document.getElementById('name-v').innerText = data.nameV;
+            document.getElementById('score-l').innerText = data.scoreL;
+            document.getElementById('score-v').innerText = data.scoreV;
+            document.getElementById('logo-l').src = data.logoL;
+            document.getElementById('logo-v').src = data.logoV;
+            document.documentElement.style.setProperty('--accent', data.color);
+            limitMinutes = parseInt(data.limit);
+            extraMinutes = parseInt(data.extra);
+            const extraLabel = document.getElementById('extra-time-label');
+            if (extraMinutes > 0) {
+                extraLabel.innerText = `+${extraMinutes}`;
+                extraLabel.style.display = 'block';
+            } else { extraLabel.style.display = 'none'; }
+        }
 
         function startClock() {
             clearInterval(timerInterval);

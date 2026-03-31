@@ -3,88 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRO Control Center</title>
+    <title>PRO Match Control</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f1216; color: #ececec; display: flex; justify-content: center; padding: 40px; }
-        .console { background: #1c2128; border: 1px solid #30363d; border-radius: 12px; width: 100%; max-width: 500px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        h2 { border-bottom: 2px solid #30363d; padding-bottom: 15px; color: #58a6ff; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121418; color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: #1c2128; padding: 20px; border-radius: 15px; width: 100%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        .row { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
+        .team-ctrl { flex: 1; text-align: center; background: #2d333b; padding: 10px; border-radius: 10px; }
         
-        .field { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-size: 12px; text-transform: uppercase; color: #8b949e; }
-        input { 
-            width: 100%; background: #0d1117; border: 1px solid #30363d; padding: 12px; 
-            color: white; border-radius: 6px; box-sizing: border-box; font-size: 16px;
-        }
+        input { width: 100%; background: #0d1117; border: 1px solid #444; color: white; padding: 8px; border-radius: 5px; box-sizing: border-box; }
         
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
-        button { 
-            padding: 15px; border-radius: 8px; border: none; cursor: pointer; 
-            font-weight: bold; text-transform: uppercase; transition: 0.3s;
-        }
-        .btn-air { background: #238636; color: white; }
-        .btn-air:hover { background: #2ea043; box-shadow: 0 0 20px rgba(46, 160, 67, 0.4); }
+        /* Botones de Score */
+        .score-btns { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+        .btn { border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-plus { background: #238636; color: white; font-size: 20px; }
+        .btn-minus { background: #da3633; color: white; }
         
-        .btn-off { background: #da3633; color: white; }
-        .btn-off:hover { background: #f85149; box-shadow: 0 0 20px rgba(248, 81, 73, 0.4); }
-
-        .presets { display: flex; gap: 10px; margin-top: 20px; }
-        .preset-chip { background: #30363d; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+        /* Reloj */
+        .clock-ctrl { background: #22272e; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .btn-start { background: #58a6ff; color: white; padding: 15px; font-size: 18px; }
+        .btn-reset { background: #8b949e; color: white; }
     </style>
 </head>
 <body>
 
-    <div class="console">
-        <h2>STUDIO OVERLAY CONTROL</h2>
+    <div class="card">
+        <h2 style="margin-top:0; color:#58a6ff;">CONTROL DE PARTIDO</h2>
         
-        <div class="field">
-            <label>Badge Superior (Ej: LIVE, GOL, INFO)</label>
-            <input type="text" id="badge" value="EN VIVO">
+        <div class="row">
+            <div class="team-ctrl">
+                <label>LOCAL</label>
+                <input type="text" id="name-l" value="LOCAL">
+                <input type="text" id="logo-l" placeholder="URL Logo" value="https://cdn-icons-png.flaticon.com/512/1165/1165230.png">
+                <div class="score-btns">
+                    <button class="btn btn-minus" onclick="changeScore('l', -1)">-</button>
+                    <button class="btn btn-plus" onclick="changeScore('l', 1)">+</button>
+                </div>
+            </div>
+
+            <div style="font-size: 30px; font-weight: bold;" id="display-score">0 - 0</div>
+
+            <div class="team-ctrl">
+                <label>VISITA</label>
+                <input type="text" id="name-v" value="VISITA">
+                <input type="text" id="logo-v" placeholder="URL Logo" value="https://cdn-icons-png.flaticon.com/512/1165/1165245.png">
+                <div class="score-btns">
+                    <button class="btn btn-minus" onclick="changeScore('v', -1)">-</button>
+                    <button class="btn btn-plus" onclick="changeScore('v', 1)">+</button>
+                </div>
+            </div>
         </div>
 
-        <div class="field">
-            <label>Título Principal (Bebas Neue)</label>
-            <input type="text" id="title" placeholder="Nombre del Jugador o Noticia">
+        <div class="row">
+            <div style="flex:1">
+                <label>Tiempo Base (Min)</label>
+                <input type="number" id="limit-min" value="45">
+            </div>
+            <div style="flex:1">
+                <label>Tiempo Extra (+Min)</label>
+                <input type="number" id="extra-min" value="0">
+            </div>
+            <div style="flex:1">
+                <label>Color</label>
+                <input type="color" id="color-picker" value="#00ff88">
+            </div>
         </div>
 
-        <div class="field">
-            <label>Subtítulo</label>
-            <input type="text" id="sub" placeholder="Información adicional">
+        <div class="clock-ctrl">
+            <button class="btn btn-start" onclick="sendClock('start')">INICIAR / REANUDAR</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-reset" style="flex:1" onclick="sendClock('stop')">PAUSAR</button>
+                <button class="btn btn-reset" style="flex:1" onclick="sendClock('reset')">RESETEAR 00:00</button>
+            </div>
         </div>
 
-        <div class="field">
-            <label>Color de Marca</label>
-            <input type="color" id="color" value="#ff004c">
-        </div>
-
-        <div class="presets">
-            <span class="preset-chip" onclick="setPreset('GOL!', 'Lionel Messi', '#ffcc00')">⚽ GOL</span>
-            <span class="preset-chip" onclick="setPreset('ALERTA', 'Cambio en el equipo', '#da3633')">🚨 ALERTA</span>
-            <span class="preset-chip" onclick="setPreset('DATOS', 'Posesión de balón: 60%', '#58a6ff')">📊 INFO</span>
-        </div>
-
-        <div class="controls">
-            <button class="btn-air" onclick="update('show')">PONER AL AIRE</button>
-            <button class="btn-off" onclick="update('hide')">QUITAR</button>
+        <div class="row" style="margin-top:20px;">
+            <button class="btn btn-plus" style="flex:1; background:#2ecc71" onclick="sendUI('show')">MOSTRAR EN OBS</button>
+            <button class="btn btn-plus" style="flex:1; background:#e74c3c" onclick="sendUI('hide')">OCULTAR</button>
         </div>
     </div>
 
     <script>
-        const bc = new BroadcastChannel('pro_broadcast_system');
+        const bc = new BroadcastChannel('ultra_pro_match');
+        let scoreL = 0;
+        let scoreV = 0;
 
-        function update(action) {
+        // Sincronizar todo al cambiar cualquier input
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', updateAll);
+        });
+
+        function changeScore(team, val) {
+            if(team === 'l') scoreL = Math.max(0, scoreL + val);
+            if(team === 'v') scoreV = Math.max(0, scoreV + val);
+            document.getElementById('display-score').innerText = `${scoreL} - ${scoreV}`;
+            updateAll();
+        }
+
+        function updateAll() {
             bc.postMessage({
-                action: action,
-                badge: document.getElementById('badge').value,
-                title: document.getElementById('title').value,
-                sub: document.getElementById('sub').value,
-                color: document.getElementById('color').value
+                type: 'update_info',
+                data: {
+                    nameL: document.getElementById('name-l').value,
+                    nameV: document.getElementById('name-v').value,
+                    scoreL: scoreL,
+                    scoreV: scoreV,
+                    logoL: document.getElementById('logo-l').value,
+                    logoV: document.getElementById('logo-v').value,
+                    limit: document.getElementById('limit-min').value,
+                    extra: document.getElementById('extra-min').value,
+                    color: document.getElementById('color-picker').value
+                }
             });
         }
 
-        function setPreset(badge, title, color) {
-            document.getElementById('badge').value = badge;
-            document.getElementById('title').value = title;
-            document.getElementById('color').value = color;
+        function sendClock(cmd) {
+            bc.postMessage({ type: 'control_clock', data: { command: cmd } });
+            updateAll(); // Forzar actualización de límites por si se cambiaron antes de iniciar
+        }
+
+        function sendUI(action) {
+            bc.postMessage({ type: 'control_ui', data: { action: action } });
         }
     </script>
 </body>

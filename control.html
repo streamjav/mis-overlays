@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <title>Master Mobile Control</title>
+    <title>Master Control PRO - Persistent</title>
     <style>
-        body { font-family: sans-serif; background: #0d1117; color: white; padding: 15px; margin: 0; }
+        body { font-family: sans-serif; background: #0d1117; color: white; padding: 15px; margin: 0; padding-bottom: 80px; }
         .card { background: #161b22; padding: 15px; border-radius: 12px; border: 1px solid #30363d; margin-bottom: 15px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         input { width: 100%; background: #010409; border: 1px solid #30363d; color: white; padding: 10px; border-radius: 6px; box-sizing: border-box; margin-top: 5px; }
@@ -14,23 +14,26 @@
         .btn-green { background: #238636; color: white; }
         .btn-red { background: #da3633; color: white; }
         .btn-blue { background: #1f6feb; color: white; }
-        .score-display { font-size: 24px; text-align: center; margin: 10px 0; font-weight: bold; background: #0d1117; padding: 10px; border-radius: 8px; color: #58a6ff; }
-        label { font-size: 12px; color: #8b949e; }
+        .score-display { font-size: 24px; text-align: center; margin: 10px 0; font-weight: bold; background: #0d1117; padding: 10px; border-radius: 8px; color: #58a6ff; border: 1px solid #58a6ff; }
+        label { font-size: 11px; color: #8b949e; font-weight: bold; }
+        .status { font-size: 10px; text-align: center; color: #238636; margin-bottom: 5px; }
     </style>
 </head>
 <body>
+
+    <div class="status" id="mqtt-status">Conectando a la nube...</div>
 
     <div class="card">
         <div class="grid">
             <div>
                 <label>LOCAL</label>
-                <input type="text" id="name-l" value="LOCAL" onchange="updateAll()">
+                <input type="text" id="name-l" value="LOCAL" oninput="updateAll()">
                 <button class="btn btn-green" onclick="changeScore('l', 1)">+ GOL</button>
                 <button class="btn btn-red" onclick="changeScore('l', -1)">-1</button>
             </div>
             <div>
                 <label>VISITA</label>
-                <input type="text" id="name-v" value="VISITA" onchange="updateAll()">
+                <input type="text" id="name-v" value="VISITA" oninput="updateAll()">
                 <button class="btn btn-green" onclick="changeScore('v', 1)">+ GOL</button>
                 <button class="btn btn-red" onclick="changeScore('v', -1)">-1</button>
             </div>
@@ -41,60 +44,96 @@
     <div class="card">
         <div class="grid">
             <div>
-                <label>TIEMPO BASE (MIN)</label>
-                <input type="number" id="limit-min" value="45" onchange="updateAll()">
+                <label>TIEMPO BASE</label>
+                <input type="number" id="limit-min" value="45" oninput="updateAll()">
             </div>
             <div>
                 <label>EXTRA (+MIN)</label>
-                <input type="number" id="extra-min" value="0" onchange="updateAll()">
+                <input type="number" id="extra-min" value="0" oninput="updateAll()">
             </div>
         </div>
-        <button class="btn btn-blue" onclick="sendClock('start')">INICIAR RELOJ</button>
+        <button class="btn btn-blue" onclick="sendClock('start')">INICIAR / REANUDAR</button>
         <div class="grid">
             <button class="btn" style="background:#30363d; color:white;" onclick="sendClock('stop')">PAUSAR</button>
-            <button class="btn" style="background:#30363d; color:white;" onclick="sendClock('reset')">RESET</button>
+            <button class="btn" style="background:#da3633; color:white;" onclick="resetFull()">RESET TOTAL</button>
         </div>
     </div>
 
     <div class="card">
-        <label>URL LOGOS (PNG)</label>
-        <input type="text" id="logo-l" value="https://cdn-icons-png.flaticon.com/512/1165/1165230.png" onchange="updateAll()">
-        <input type="text" id="logo-v" value="https://cdn-icons-png.flaticon.com/512/1165/1165245.png" onchange="updateAll()">
-        <label>COLOR ACENTO</label>
-        <input type="color" id="color-picker" value="#00ff88" onchange="updateAll()">
+        <label>LOGOS (URL PNG)</label>
+        <input type="text" id="logo-l" placeholder="URL Logo Local" oninput="updateAll()">
+        <input type="text" id="logo-v" placeholder="URL Logo Visita" oninput="updateAll()">
+        <label style="margin-top:10px; display:block;">COLOR DE MARCA</label>
+        <input type="color" id="color-picker" value="#00ff88" oninput="updateAll()">
     </div>
 
-    <button class="btn btn-green" style="position:fixed; bottom:10px; left:10px; width:45%;" onclick="sendUI('show')">MOSTRAR</button>
-    <button class="btn btn-red" style="position:fixed; bottom:10px; right:10px; width:45%;" onclick="sendUI('hide')">OCULTAR</button>
+    <div style="position:fixed; bottom:0; left:0; width:100%; display:flex; gap:5px; padding:10px; background:#0d1117; box-sizing:border-box;">
+        <button class="btn btn-green" style="flex:1" onclick="sendUI('show')">MOSTRAR</button>
+        <button class="btn btn-red" style="flex:1" onclick="sendUI('hide')">OCULTAR</button>
+    </div>
 
     <script>
         const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-        let scoreL = 0; let scoreV = 0;
+        
+        let state = {
+            scoreL: 0,
+            scoreV: 0,
+            isRunning: false
+        };
+
+        // 1. CARGAR DATOS AL INICIAR
+        window.onload = () => {
+            const saved = localStorage.getItem(ID_UNICO);
+            if (saved) {
+                const data = JSON.parse(saved);
+                document.getElementById('name-l').value = data.nameL;
+                document.getElementById('name-v').value = data.nameV;
+                document.getElementById('logo-l').value = data.logoL;
+                document.getElementById('logo-v').value = data.logoV;
+                document.getElementById('limit-min').value = data.limit;
+                document.getElementById('extra-min').value = data.extra;
+                document.getElementById('color-picker').value = data.color;
+                state.scoreL = data.scoreL;
+                state.scoreV = data.scoreV;
+                updateDisplay();
+            }
+        };
+
+        client.on('connect', () => {
+            document.getElementById('mqtt-status').innerText = "🟢 NUBE CONECTADA";
+            updateAll(); // Sincronizar vMix al conectar
+        });
 
         function changeScore(team, val) {
-            if(team === 'l') scoreL = Math.max(0, scoreL + val);
-            if(team === 'v') scoreV = Math.max(0, scoreV + val);
-            document.getElementById('display-score').innerText = `${scoreL} - ${scoreV}`;
+            if(team === 'l') state.scoreL = Math.max(0, state.scoreL + val);
+            if(team === 'v') state.scoreV = Math.max(0, state.scoreV + val);
+            updateDisplay();
             updateAll();
         }
 
+        function updateDisplay() {
+            document.getElementById('display-score').innerText = `${state.scoreL} - ${state.scoreV}`;
+        }
+
         function updateAll() {
-            const payload = {
-                type: 'update_info',
-                data: {
-                    nameL: document.getElementById('name-l').value,
-                    nameV: document.getElementById('name-v').value,
-                    scoreL: scoreL,
-                    scoreV: scoreV,
-                    logoL: document.getElementById('logo-l').value,
-                    logoV: document.getElementById('logo-v').value,
-                    limit: document.getElementById('limit-min').value,
-                    extra: document.getElementById('extra-min').value,
-                    color: document.getElementById('color-picker').value
-                }
+            const currentData = {
+                nameL: document.getElementById('name-l').value,
+                nameV: document.getElementById('name-v').value,
+                scoreL: state.scoreL,
+                scoreV: state.scoreV,
+                logoL: document.getElementById('logo-l').value,
+                logoV: document.getElementById('logo-v').value,
+                limit: document.getElementById('limit-min').value,
+                extra: document.getElementById('extra-min').value,
+                color: document.getElementById('color-picker').value
             };
-            client.publish(ID_UNICO, JSON.stringify(payload));
+
+            // GUARDAR EN DISCO LOCAL
+            localStorage.setItem(ID_UNICO, JSON.stringify(currentData));
+
+            // ENVIAR A VMIX
+            client.publish(ID_UNICO, JSON.stringify({ type: 'update_info', data: currentData }));
         }
 
         function sendClock(cmd) {
@@ -104,6 +143,16 @@
 
         function sendUI(action) {
             client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } }));
+        }
+
+        function resetFull() {
+            if(confirm("¿Reiniciar todo el partido a 0?")) {
+                state.scoreL = 0;
+                state.scoreV = 0;
+                sendClock('reset');
+                updateDisplay();
+                updateAll();
+            }
         }
     </script>
 </body>

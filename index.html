@@ -2,80 +2,126 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            background: transparent; 
-            overflow: hidden; 
-            font-family: 'Oswald', sans-serif; 
-            margin: 0;
+        :root {
+            --primary: #ff004c;
+            --accent: #ffffff;
+            --dark: rgba(15, 15, 15, 0.9);
         }
 
-        /* Contenedor principal del Lower Third */
-        .lt-container {
+        body { 
+            margin: 0; padding: 0; overflow: hidden; 
+            background: transparent; font-family: 'Montserrat', sans-serif; 
+        }
+
+        /* Contenedor Maestro */
+        #overlay-wrapper {
             position: absolute;
-            bottom: 80px;
-            left: 50px;
+            bottom: 60px;
+            left: 60px;
             display: flex;
             flex-direction: column;
-            opacity: 0;
-            transform: translateX(-50px);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+            visibility: hidden;
         }
 
-        .lt-container.active {
-            opacity: 1;
-            transform: translateX(0);
+        /* Animación de entrada */
+        #overlay-wrapper.active {
+            visibility: visible;
         }
 
-        /* Fila del Título (Principal) */
-        .lt-main {
-            background: #ffffff;
-            color: #1a1a1a;
-            padding: 5px 25px;
-            font-size: 32px;
-            text-transform: uppercase;
-            border-left: 12px solid #e74c3c; /* Color de acento */
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
-            display: inline-block;
-            width: fit-content;
-        }
-
-        /* Fila del Subtítulo */
-        .lt-sub {
-            background: #e74c3c;
+        /* Barra de Acento Superior (LIVE / BREAKING) */
+        .badge {
+            background: var(--primary);
             color: white;
-            padding: 3px 20px;
-            font-size: 18px;
+            font-family: 'Bebas Neue', cursive;
+            padding: 4px 20px;
+            font-size: 20px;
+            letter-spacing: 2px;
             width: fit-content;
-            margin-top: 2px;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            clip-path: polygon(0 0, 100% 0, 90% 100%, 0% 100%);
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0.1s;
         }
+
+        /* Barra Principal */
+        .main-bar {
+            display: flex;
+            align-items: center;
+            background: var(--dark);
+            backdrop-filter: blur(10px);
+            border-left: 8px solid var(--primary);
+            height: 80px;
+            min-width: 500px;
+            padding: 0 40px;
+            clip-path: polygon(0 0, 98% 0, 100% 100%, 0% 100%);
+            transform: translateX(-110%);
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* Texto del Título */
+        .title {
+            color: white;
+            font-family: 'Bebas Neue', cursive;
+            font-size: 50px;
+            margin: 0;
+            line-height: 1;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease 0.4s;
+        }
+
+        /* Barra Inferior (Subtítulo) */
+        .sub-bar {
+            background: var(--accent);
+            color: #111;
+            padding: 5px 30px;
+            font-weight: 700;
+            font-size: 18px;
+            text-transform: uppercase;
+            width: fit-content;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease 0.6s;
+        }
+
+        /* ESTADOS ACTIVOS */
+        .active .badge { transform: translateX(0); }
+        .active .main-bar { transform: translateX(0); }
+        .active .title { opacity: 1; transform: translateY(0); }
+        .active .sub-bar { transform: scaleX(1); }
+
     </style>
 </head>
 <body>
 
-    <div id="lower-third" class="lt-container">
-        <div class="lt-main" id="txt-title">TITULO PRINCIPAL</div>
-        <div class="lt-sub" id="txt-sub">DESCRIPCIÓN O SUBTÍTULO</div>
+    <div id="overlay-wrapper">
+        <div id="ui-badge" class="badge">EN VIVO</div>
+        <div class="main-bar">
+            <h1 id="ui-title" class="title">CARGANDO TÍTULO...</h1>
+        </div>
+        <div id="ui-sub" class="sub-bar">DESCRIPCIÓN DEL EVENTO</div>
     </div>
 
     <script>
-        const bc = new BroadcastChannel('overlay_channel');
+        const bc = new BroadcastChannel('pro_broadcast_system');
 
         bc.onmessage = (event) => {
-            const { action, title, sub, color } = event.data;
+            const { action, title, sub, badge, color } = event.data;
             
             if (action === 'show') {
-                document.getElementById('txt-title').innerText = title;
-                document.getElementById('txt-sub').innerText = sub;
-                // Opcional: cambiar el color de acento
-                document.getElementById('txt-sub').style.backgroundColor = color;
-                document.getElementById('txt-title').style.borderLeftColor = color;
+                // Actualizar Textos
+                document.getElementById('ui-title').innerText = title;
+                document.getElementById('ui-sub').innerText = sub;
+                document.getElementById('ui-badge').innerText = badge;
                 
-                document.getElementById('lower-third').classList.add('active');
+                // Actualizar Colores
+                document.documentElement.style.setProperty('--primary', color);
+                
+                document.getElementById('overlay-wrapper').classList.add('active');
             } else {
-                document.getElementById('lower-third').classList.remove('active');
+                document.getElementById('overlay-wrapper').classList.remove('active');
             }
         };
     </script>

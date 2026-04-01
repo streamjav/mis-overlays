@@ -4,244 +4,230 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <title>MASTER CONTROL - Deportes & Zócalos</title>
+    <title>Control Maestro - Deportes & Zócalos</title>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --accent: #1f6feb; --success: #238636; --danger: #da3633; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 100px; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 100px; }
         
-        /* Sistema de Pestañas */
-        .tabs { display: flex; background: #010409; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
-        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; cursor: pointer; color: #8b949e; border-bottom: 2px solid transparent; font-size: 11px; text-transform: uppercase; }
+        .tabs { display: flex; background: #010409; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; color: #8b949e; border-bottom: 2px solid transparent; font-size: 12px; cursor: pointer; }
         .tab.active { color: white; border-bottom: 2px solid var(--accent); background: var(--card); }
-        .tab-content { display: none; padding: 15px; max-width: 500px; margin: auto; }
+
+        .container { padding: 15px; max-width: 500px; margin: auto; }
+        .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Estilos Comunes */
-        .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 15px; margin-bottom: 15px; }
-        label { font-size: 10px; color: #8b949e; font-weight: bold; display: block; margin-bottom: 5px; text-transform: uppercase; }
+        .card { background: var(--card); border-radius: 8px; border: 1px solid var(--border); padding: 15px; margin-bottom: 15px; }
+        .section-title { font-size: 11px; color: #8b949e; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; display: block; }
+        
         input[type="text"], input[type="number"], select, textarea { 
             width: 100%; background: #010409; border: 1px solid var(--border); color: white; padding: 10px; 
-            border-radius: 6px; box-sizing: border-box; font-size: 14px; 
+            border-radius: 6px; box-sizing: border-box; margin-bottom: 10px;
         }
+
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .btn { border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; margin-top: 5px; color: white; }
-        .btn-show { background: var(--success); }
-        .btn-hide { background: var(--danger); }
+        .btn { border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; color: white; margin-bottom: 5px; }
         .btn-blue { background: var(--accent); }
+        .btn-green { background: var(--success); }
+        .btn-red { background: var(--danger); }
         .btn-gray { background: #30363d; }
-        
-        .color-group { display: flex; gap: 5px; justify-content: center; margin-bottom: 5px; }
-        input[type="color"] { width: 30px; height: 30px; border: none; border-radius: 4px; background: none; cursor: pointer; padding: 0; }
 
-        /* Switch Estilo */
-        .switch-container { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0; }
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        /* Estilos específicos para la pestaña Zócalos (Acordeón) */
+        details { background: #010409; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
+        summary { padding: 12px; cursor: pointer; font-weight: bold; font-size: 13px; background: #161b22; }
+        .details-content { padding: 15px; border-top: 1px solid var(--border); }
+        .color-picker-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        input[type="color"] { border: none; width: 40px; height: 40px; cursor: pointer; background: none; }
 
-        /* Barra Inferior Fija */
-        .action-bar { position: fixed; bottom: 0; width: 100%; display: flex; gap: 10px; padding: 15px; background: #0d1117; box-sizing: border-box; border-top: 1px solid var(--border); z-index: 1000; }
+        /* Botón de acción flotante */
+        .floating-actions { position: fixed; bottom: 0; left: 0; right: 0; background: #0d1117; padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; max-width: 500px; margin: auto; }
     </style>
 </head>
 <body>
 
     <div class="tabs">
-        <div class="tab active" onclick="openTab(event, 'tab-deportes')">DEPORTES</div>
-        <div class="tab" onclick="openTab(event, 'tab-zocalos')">ZÓCALOS</div>
-        <div class="tab">WEBRTC</div>
-        <div class="tab">PLAYLIST</div>
+        <div class="tab active" onclick="openTab(0)">DEPORTES</div>
+        <div class="tab" onclick="openTab(1)">ZÓCALOS</div>
+        <div class="tab" onclick="openTab(2)">WEBRTC</div>
+        <div class="tab" onclick="openTab(3)">PLAYLIST</div>
     </div>
 
-    <div id="tab-deportes" class="tab-content active">
-        <div class="card">
-            <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;">
-                <div style="text-align: center;">
-                    <div class="color-group">
-                        <input type="color" id="bg-l" value="#0000FF" oninput="updateSports()">
-                        <input type="color" id="txt-l" value="#FFFFFF" oninput="updateSports()">
+    <div class="container">
+        <div id="tab-deportes" class="tab-content active">
+            <div class="card">
+                <span class="section-title">Equipos y Colores</span>
+                <div class="grid-2">
+                    <div>
+                        <input type="color" id="bg-l" value="#0000FF" oninput="updateAll()">
+                        <input type="color" id="txt-l" value="#FFFFFF" oninput="updateAll()">
+                        <input type="text" id="name-l" value="LOCAL" oninput="updateAll()">
+                        <input type="text" id="logo-l" placeholder="URL Logo Local" oninput="updateAll()">
                     </div>
-                    <label>LOCAL</label>
-                    <input type="text" id="name-l" value="ALIANZA" oninput="updateSports()">
-                    <input type="text" id="logo-l" placeholder="+ LOGO URL" style="margin-top:5px; font-size:10px;" oninput="updateSports()">
-                </div>
-                <div style="font-size: 24px; font-weight: bold; color: var(--accent);" id="display-score">0 - 0</div>
-                <div style="text-align: center;">
-                    <div class="color-group">
-                        <input type="color" id="bg-v" value="#FFFF00" oninput="updateSports()">
-                        <input type="color" id="txt-v" value="#000000" oninput="updateSports()">
+                    <div>
+                        <input type="color" id="bg-v" value="#FFFF00" oninput="updateAll()">
+                        <input type="color" id="txt-v" value="#000000" oninput="updateAll()">
+                        <input type="text" id="name-v" value="VISITA" oninput="updateAll()">
+                        <input type="text" id="logo-v" placeholder="URL Logo Visita" oninput="updateAll()">
                     </div>
-                    <label>VISITA</label>
-                    <input type="text" id="name-v" value="UNIVERSITARIO" oninput="updateSports()">
-                    <input type="text" id="logo-v" placeholder="+ LOGO URL" style="margin-top:5px; font-size:10px;" oninput="updateSports()">
                 </div>
             </div>
-            <div class="grid-2" style="margin-top:15px;">
-                <div>
-                    <button class="btn btn-show" onclick="changeScore('l', 1)">+ GOL</button>
-                    <button class="btn btn-hide" onclick="changeScore('l', -1)">-1</button>
-                </div>
-                <div>
-                    <button class="btn btn-show" onclick="changeScore('v', 1)">+ GOL</button>
-                    <button class="btn btn-hide" onclick="changeScore('v', -1)">-1</button>
-                </div>
-            </div>
-        </div>
 
-        <div class="card">
-            <div class="grid-3" style="text-align: center;">
-                <div>
-                    <label>TIEMPO BASE</label>
-                    <input type="number" id="limit-min" value="45" oninput="updateSports()">
-                    <div class="color-group" style="margin-top:5px;">
-                        <input type="color" id="bg-clock" value="#FFFFFF" oninput="updateSports()">
-                        <input type="color" id="txt-clock" value="#000000" oninput="updateSports()">
+            <div class="card">
+                <span class="section-title">Marcador y Tiempo</span>
+                <div class="grid-2">
+                    <button class="btn btn-blue" onclick="changeScore('l', 1)">GOL LOCAL</button>
+                    <button class="btn btn-blue" onclick="changeScore('v', 1)">GOL VISITA</button>
+                </div>
+                <div class="grid-2" style="margin-top: 10px;">
+                    <div>
+                        <label style="font-size: 10px;">TIEMPO LÍMITE</label>
+                        <input type="number" id="limit-min" value="45" oninput="updateAll()">
+                    </div>
+                    <div>
+                        <label style="font-size: 10px;">TIEMPO EXTRA</label>
+                        <input type="number" id="extra-min" value="0" oninput="updateAll()">
                     </div>
                 </div>
-                <div>
-                    <label>PERIODO</label>
-                    <div class="color-group">
-                        <input type="color" id="bg-p" value="#FF0000" oninput="updateSports()">
-                        <input type="color" id="txt-p" value="#FFFFFF" oninput="updateSports()">
-                    </div>
-                    <div class="switch-container">
-                        <span style="font-size:10px;">1T</span>
-                        <label class="switch">
-                            <input type="checkbox" id="period-toggle" onchange="handlePeriodChange()">
-                            <span class="slider"></span>
-                        </label>
-                        <span style="font-size:10px;">2T</span>
-                    </div>
+                <div class="grid-2">
+                    <button class="btn btn-green" onclick="sendClock('start')">INICIAR</button>
+                    <button class="btn btn-gray" onclick="sendClock('stop')">PAUSAR</button>
                 </div>
-                <div>
-                    <label>EXTRA (+MIN)</label>
-                    <input type="number" id="extra-min" value="0" oninput="updateSports()">
-                    <div class="color-group" style="margin-top:5px;">
-                        <input type="color" id="bg-extra" value="#FF0000" oninput="updateSports()">
-                        <input type="color" id="txt-extra" value="#FFFFFF" oninput="updateSports()">
-                    </div>
-                </div>
+                <button class="btn btn-red" style="margin-top:10px" onclick="sendClock('reset')">RESET TIEMPO</button>
             </div>
-            <button class="btn btn-blue" onclick="sendClock('start')">INICIAR RELOJ</button>
-            <div class="grid-2">
-                <button class="btn btn-gray" onclick="sendClock('stop')">PAUSAR</button>
-                <button class="btn btn-hide" onclick="resetFullSports()">RESET</button>
-            </div>
-        </div>
-    </div>
 
-    <div id="tab-zocalos" class="tab-content">
-        <div class="card">
-            <label>CINTILLO (LOWER THIRD)</label>
-            <input type="text" id="z-title" placeholder="Título Principal" value="MARCO ANTONIO" oninput="updateZocalos()">
-            <input type="text" id="z-subtitle" placeholder="Subtítulo" value="COMENTARISTA DEPORTIVO" style="margin-top:5px;" oninput="updateZocalos()">
-            
-            <div class="grid-2" style="margin-top:10px;">
-                <div>
-                    <label>ESTILO</label>
-                    <select id="z-style" onchange="updateZocalos()">
-                        <option value="modern">MODERN</option>
-                        <option value="neon">NEON</option>
-                        <option value="glass">GLASS</option>
-                        <option value="minimal">MINIMAL</option>
-                    </select>
+            <div class="card">
+                <span class="section-title">Configuración de Periodo</span>
+                <div class="grid-2">
+                    <input type="color" id="bg-p" value="#FF0000" oninput="updateAll()">
+                    <input type="color" id="txt-p" value="#FFFFFF" oninput="updateAll()">
                 </div>
-                <div>
-                    <label>COLOR BASE</label>
-                    <input type="color" id="z-color" value="#1f6feb" style="width:100%" oninput="updateZocalos()">
-                </div>
-            </div>
-            <button class="btn btn-blue" id="btn-z-toggle" onclick="toggleZocalo()">MOSTRAR CINTILLO</button>
-        </div>
-
-        <div class="card">
-            <label>BARRA DE NOTICIAS (TICKER)</label>
-            <textarea id="z-ticker-text" rows="2" placeholder="Escribe las noticias aquí..." oninput="updateZocalos()">ULTIMO MINUTO: EL PARTIDO SE JUEGA A PUERTAS CERRADAS EN EL ESTADIO NACIONAL...</textarea>
-            <div class="switch-container" style="justify-content: flex-start;">
-                <label class="switch">
-                    <input type="checkbox" id="z-ticker-visible" onchange="updateZocalos()">
-                    <span class="slider"></span>
-                </label>
-                <label style="margin:0">ACTIVAR TICKER DE NOTICIAS</label>
-            </div>
-        </div>
-
-        <div class="card grid-2">
-            <div>
-                <label>RED SOCIAL</label>
-                <select id="z-social-net" onchange="updateZocalos()">
-                    <option value="fb">FACEBOOK</option>
-                    <option value="ig">INSTAGRAM</option>
-                    <option value="tw">X (TWITTER)</option>
-                    <option value="yt">YOUTUBE</option>
+                <select id="period-toggle" onchange="updateAll()">
+                    <option value="1T">PRIMER TIEMPO (1T)</option>
+                    <option value="2T">SEGUNDO TIEMPO (2T)</option>
                 </select>
-                <input type="text" id="z-social-handle" value="@tuusuario" oninput="updateZocalos()" style="margin-top:5px;">
-                <button class="btn btn-gray" id="btn-soc-toggle" onclick="toggleSocial()" style="font-size:10px;">TOGGLE REDES</button>
-            </div>
-            <div>
-                <label>EXTRA BUG</label>
-                <div class="switch-container" style="justify-content: flex-start;">
-                    <label class="switch"><input type="checkbox" id="z-bug-live" onchange="updateZocalos()"><span class="slider"></span></label>
-                    <span style="font-size:10px;">VIVO</span>
-                </div>
-                <div class="switch-container" style="justify-content: flex-start;">
-                    <label class="switch"><input type="checkbox" id="z-bug-clock" onchange="updateZocalos()"><span class="slider"></span></label>
-                    <span style="font-size:10px;">HORA</span>
+                <div class="grid-2">
+                    <input type="color" id="bg-clock" value="#FFFFFF" oninput="updateAll()">
+                    <input type="color" id="txt-clock" value="#000000" oninput="updateAll()">
+                    <input type="color" id="bg-extra" value="#FF0000" oninput="updateAll()">
+                    <input type="color" id="txt-extra" value="#FFFFFF" oninput="updateAll()">
                 </div>
             </div>
         </div>
+
+        <div id="tab-zocalos" class="tab-content">
+            <div class="card">
+                <button class="btn btn-green" id="btn-show-zocalo" onclick="toggleZocaloVisible()">MOSTRAR CINTILLO</button>
+                
+                <details open>
+                    <summary>DISEÑO DEL CINTILLO</summary>
+                    <div class="details-content">
+                        <label class="section-title">Estilo Visual</label>
+                        <select id="z-style" onchange="updateZocaloMQTT()">
+                            <option value="modern">MODERN</option>
+                            <option value="minimal">MINIMAL</option>
+                            <option value="glass">GLASS</option>
+                            <option value="neon">NEON</option>
+                            <option value="sport">SPORT</option>
+                        </select>
+                        
+                        <label class="section-title">Color Principal</label>
+                        <div class="color-picker-row">
+                            <input type="color" id="z-color" value="#3b82f6" oninput="updateZocaloMQTT()">
+                            <span id="z-color-hex">#3b82f6</span>
+                        </div>
+
+                        <label class="section-title">Texto Principal</label>
+                        <input type="text" id="z-title" value="OSCAR ABAD" placeholder="Ej: Nombre de la persona" oninput="updateZocaloMQTT()">
+                        
+                        <label class="section-title">Subtítulo / Cargo</label>
+                        <input type="text" id="z-subtitle" value="DIRECTOR TÉCNICO" placeholder="Ej: Periodista / Invitado" oninput="updateZocaloMQTT()">
+                    </div>
+                </details>
+
+                <details>
+                    <summary>REDES SOCIALES</summary>
+                    <div class="details-content">
+                        <button class="btn btn-blue" id="btn-social-visible" onclick="toggleSocialVisible()">MOSTRAR REDES</button>
+                        <select id="z-social-net" onchange="updateZocaloMQTT()" style="margin-top:10px">
+                            <option value="instagram">INSTAGRAM</option>
+                            <option value="facebook">FACEBOOK</option>
+                            <option value="x">X (TWITTER)</option>
+                            <option value="youtube">YOUTUBE</option>
+                        </select>
+                        <input type="text" id="z-social-handle" value="@oscar_abad" placeholder="@usuario" oninput="updateZocaloMQTT()">
+                    </div>
+                </details>
+
+                <details>
+                    <summary>NOTICIAS (TICKER)</summary>
+                    <div class="details-content">
+                        <button class="btn btn-blue" id="btn-ticker-visible" onclick="toggleTickerVisible()">MOSTRAR TICKER</button>
+                        <label class="section-title" style="margin-top:10px">Texto de Noticias</label>
+                        <textarea id="z-ticker-text" rows="3" oninput="updateZocaloMQTT()">BIENVENIDOS A LA TRANSMISIÓN OFICIAL DEL ENCUENTRO...</textarea>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>BUG (VIVO / RELOJ)</summary>
+                    <div class="details-content">
+                        <div class="grid-2">
+                            <button class="btn btn-gray" id="btn-bug-live" onclick="toggleBugLive()">MOSTRAR VIVO</button>
+                            <button class="btn btn-gray" id="btn-bug-clock" onclick="toggleBugClock()">MOSTRAR HORA</button>
+                        </div>
+                        <input type="text" id="z-bug-text" value="VIVO" style="margin-top:10px" oninput="updateZocaloMQTT()">
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <div id="tab-webrtc" class="tab-content"> <div class="card">Próximamente...</div> </div>
+        <div id="tab-playlist" class="tab-content"> <div class="card">Próximamente...</div> </div>
     </div>
 
-    <div class="action-bar" id="bar-sports">
-        <button class="btn btn-show" style="flex:2" onclick="sendSportsUI('show')">MOSTRAR MARCADOR</button>
-        <button class="btn btn-hide" style="flex:1" onclick="sendSportsUI('hide')">OCULTAR</button>
+    <div class="floating-actions" id="sports-actions">
+        <button class="btn btn-green" onclick="sendUI('show')">MOSTRAR MARCADOR</button>
+        <button class="btn btn-red" onclick="sendUI('hide')">OCULTAR</button>
     </div>
 
     <script>
+        const ID_UNICO = "marcador_oscar_pro_2024";
+        const TOPIC_ZOCALO = "sc_zocalo/stream";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-        const TOPIC_SPORTS = "marcador_oscar_pro_2024";
-        const TOPIC_ZOCALOS = "sc_zocalo/stream";
 
-        let sportsState = { scoreL: 0, scoreV: 0 };
-        let zocaloVisible = false;
-        let socialVisible = false;
+        let scoreL = 0, scoreV = 0;
+        
+        // Estado de los Zócalos
+        let zState = {
+            lt: { visible: false, title: "OSCAR ABAD", subtitle: "DIRECTOR TÉCNICO", color: "#3b82f6", style: "modern", scale: 100 },
+            ticker: { visible: false, text: "BIENVENIDOS A LA TRANSMISIÓN...", speed: 25 },
+            social: { visible: false, net: "instagram", handle: "@oscar_abad" },
+            bug: { showLive: false, showClock: false, text: "VIVO" }
+        };
 
-        function openTab(evt, tabName) {
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tab-content");
-            for (i = 0; i < tabcontent.length; i++) tabcontent[i].classList.remove("active");
-            tablinks = document.getElementsByClassName("tab");
-            for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
-            document.getElementById(tabName).classList.add("active");
-            evt.currentTarget.classList.add("active");
-            
-            // Mostrar/Ocultar barra de botones según pestaña
-            document.getElementById('bar-sports').style.display = (tabName === 'tab-deportes') ? 'flex' : 'none';
+        function openTab(idx) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            tabs.forEach((t, i) => {
+                t.classList.toggle('active', i === idx);
+                contents[i].classList.toggle('active', i === idx);
+            });
+            // Ocultar barra deportes si no estamos en esa pestaña
+            document.getElementById('sports-actions').style.display = (idx === 0) ? 'flex' : 'none';
         }
 
         // --- LÓGICA DEPORTES ---
         function changeScore(team, val) {
-            if(team === 'l') sportsState.scoreL = Math.max(0, sportsState.scoreL + val);
-            else sportsState.scoreV = Math.max(0, sportsState.scoreV + val);
-            document.getElementById('display-score').innerText = `${sportsState.scoreL} - ${sportsState.scoreV}`;
-            updateSports();
+            if(team === 'l') scoreL = Math.max(0, scoreL + val);
+            else scoreV = Math.max(0, scoreV + val);
+            updateAll();
         }
 
-        function handlePeriodChange() {
-            sendClock('reset');
-            updateSports();
-        }
-
-        function updateSports() {
-            const is2T = document.getElementById('period-toggle').checked;
+        function updateAll() {
+            const is2T = document.getElementById('period-toggle').value === "2T";
             let data = {
                 nameL: document.getElementById('name-l').value,
                 nameV: document.getElementById('name-v').value,
-                scoreL: sportsState.scoreL,
-                scoreV: sportsState.scoreV,
+                scoreL: scoreL, scoreV: scoreV,
                 logoL: document.getElementById('logo-l').value,
                 logoV: document.getElementById('logo-v').value,
                 bgL: document.getElementById('bg-l').value,
@@ -267,53 +253,37 @@
                 data.bgL = temp.bgV; data.bgV = temp.bgL;
                 data.txtL = temp.txtV; data.txtV = temp.txtL;
             }
-            client.publish(TOPIC_SPORTS, JSON.stringify({ type: 'update_info', data: data }));
+            client.publish(ID_UNICO, JSON.stringify({ type: 'update_info', data: data }));
         }
 
-        function sendClock(cmd) { client.publish(TOPIC_SPORTS, JSON.stringify({ type: 'control_clock', data: { command: cmd } })); updateSports(); }
-        function sendSportsUI(action) { client.publish(TOPIC_SPORTS, JSON.stringify({ type: 'control_ui', data: { action: action } })); }
-        function resetFullSports() { if(confirm("¿Resetear Marcador?")) { sportsState.scoreL = 0; sportsState.scoreV = 0; sendClock('reset'); updateSports(); } }
+        function sendClock(cmd) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_clock', data: { command: cmd } })); updateAll(); }
+        function sendUI(action) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } })); }
 
         // --- LÓGICA ZÓCALOS ---
-        function toggleZocalo() {
-            zocaloVisible = !zocaloVisible;
-            document.getElementById('btn-z-toggle').innerText = zocaloVisible ? "OCULTAR CINTILLO" : "MOSTRAR CINTILLO";
-            document.getElementById('btn-z-toggle').className = zocaloVisible ? "btn btn-hide" : "btn btn-blue";
-            updateZocalos();
+        function toggleZocaloVisible() { 
+            zState.lt.visible = !zState.lt.visible; 
+            document.getElementById('btn-show-zocalo').innerText = zState.lt.visible ? "OCULTAR CINTILLO" : "MOSTRAR CINTILLO";
+            document.getElementById('btn-show-zocalo').className = zState.lt.visible ? "btn btn-red" : "btn btn-green";
+            updateZocaloMQTT(); 
         }
+        function toggleSocialVisible() { zState.social.visible = !zState.social.visible; updateZocaloMQTT(); }
+        function toggleTickerVisible() { zState.ticker.visible = !zState.ticker.visible; updateZocaloMQTT(); }
+        function toggleBugLive() { zState.bug.showLive = !zState.bug.showLive; updateZocaloMQTT(); }
+        function toggleBugClock() { zState.bug.showClock = !zState.bug.showClock; updateZocaloMQTT(); }
 
-        function toggleSocial() {
-            socialVisible = !socialVisible;
-            updateZocalos();
-        }
-
-        function updateZocalos() {
-            const data = {
-                lt: {
-                    visible: zocaloVisible,
-                    title: document.getElementById('z-title').value,
-                    subtitle: document.getElementById('z-subtitle').value,
-                    style: document.getElementById('z-style').value,
-                    color: document.getElementById('z-color').value,
-                    scale: 100
-                },
-                ticker: {
-                    visible: document.getElementById('z-ticker-visible').checked,
-                    text: document.getElementById('z-ticker-text').value,
-                    speed: 25
-                },
-                social: {
-                    visible: socialVisible,
-                    net: document.getElementById('z-social-net').value,
-                    handle: document.getElementById('z-social-handle').value
-                },
-                bug: {
-                    showLive: document.getElementById('z-bug-live').checked,
-                    showClock: document.getElementById('z-bug-clock').checked,
-                    text: "VIVO"
-                }
-            };
-            client.publish(TOPIC_ZOCALOS, JSON.stringify({ type: 'zocalo_update', data: data }));
+        function updateZocaloMQTT() {
+            zState.lt.title = document.getElementById('z-title').value;
+            zState.lt.subtitle = document.getElementById('z-subtitle').value;
+            zState.lt.style = document.getElementById('z-style').value;
+            zState.lt.color = document.getElementById('z-color').value;
+            zState.ticker.text = document.getElementById('z-ticker-text').value;
+            zState.social.net = document.getElementById('z-social-net').value;
+            zState.social.handle = document.getElementById('z-social-handle').value;
+            zState.bug.text = document.getElementById('z-bug-text').value;
+            
+            document.getElementById('z-color-hex').innerText = zState.lt.color;
+            
+            client.publish(TOPIC_ZOCALO, JSON.stringify({ type: 'zocalo_update', data: zState }));
         }
     </script>
 </body>

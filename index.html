@@ -3,78 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@700&family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background: transparent; font-family: 'Roboto Condensed', sans-serif; }
         
-        /* --- ESTILOS MARCADOR DEPORTES --- */
+        /* ================= MARCADOR DEPORTIVO (INTACTO) ================= */
         #scoreboard {
             position: absolute; top: 40px; left: 50px; display: flex; align-items: stretch; height: 55px;
             filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
             transform: translateY(-120px); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
         #scoreboard.active { transform: translateY(0); }
+
         .team-container { display: flex; align-items: stretch; flex-grow: 1; }
         .logo-box { background: white; width: 55px; min-width: 55px; height: 55px; display: none; justify-content: center; align-items: center; }
         .logo-box img { width: 85%; height: 85%; object-fit: contain; }
-        .name-box { font-size: 26px; text-transform: uppercase; min-width: 130px; display: flex; align-items: center; padding: 0 15px; flex-grow: 1; }
+        .name-box { font-size: 26px; text-transform: uppercase; min-width: 130px; display: flex; align-items: center; padding: 0 15px; flex-grow: 1; letter-spacing: 0.5px; }
         .score-box { font-size: 38px; font-weight: 900; width: 55px; display: flex; align-items: center; justify-content: center; }
         .period-box { width: 42px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; z-index: 10; }
+        
         .timer-box { width: 105px; min-width: 105px; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 40px; position: relative; }
         #extra-time-label { position: absolute; bottom: -28px; right: 0; font-size: 18px; padding: 2px 10px; font-weight: bold; display: none; }
+
         #group-l { flex-direction: row; }
         #group-v { flex-direction: row-reverse; }
 
-        /* --- ESTILOS ZÓCALOS (LOWER THIRDS) --- */
-        #zocalo-container {
-            position: absolute; bottom: 80px; left: 50px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            opacity: 0; transform: translateY(50px);
+        /* ================= ZÓCALO PROFESIONAL (NUEVA INTEGRACIÓN) ================= */
+        #lower-third {
+            position: absolute; bottom: 80px; left: 50px; display: flex; align-items: stretch;
+            transform: translateX(-150%); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
         }
-        #zocalo-container.visible { opacity: 1; transform: translateY(0); }
-
-        /* Estilos de Cintillo */
-        .z-main-box { padding: 15px 30px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        .z-title { font-size: 42px; font-weight: 900; margin: 0; text-transform: uppercase; line-height: 1; color: white; }
-        .z-subtitle { font-size: 18px; font-weight: 700; margin-top: 5px; text-transform: uppercase; color: white; opacity: 0.9; }
-
-        /* Variantes de Estilo */
-        .style-modern { border-left: 10px solid #fff; background: #1e293b; border-radius: 4px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .style-glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
-        .style-neon { background: #000; border: 2px solid; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
-        .style-sport { transform: skewX(-10deg); border-right: 15px solid #fff; }
-
-        /* Ticker (Noticias) */
-        #ticker-wrap {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 45px;
-            background: #000; border-top: 3px solid #fff; display: none; align-items: center;
-            overflow: hidden; font-family: 'Inter', sans-serif;
+        #lower-third.active { transform: translateX(0); }
+        
+        .lt-color-bar { width: 12px; background: var(--lt-color, #1f6feb); border-radius: 4px 0 0 4px; }
+        .lt-content { 
+            background: rgba(15, 20, 25, 0.95); padding: 12px 30px; 
+            display: flex; flex-direction: column; justify-content: center; 
+            border-radius: 0 4px 4px 0; border-right: 2px solid var(--lt-color, #1f6feb);
         }
-        #ticker-label { background: #fff; color: #000; padding: 0 20px; font-weight: 900; height: 100%; display: flex; align-items: center; z-index: 10; }
-        #ticker-content { white-space: nowrap; color: #fff; font-size: 20px; font-weight: 700; display: inline-block; animation: ticker-anim 25s linear infinite; }
-        @keyframes ticker-anim { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
-        /* Social Media */
-        #social-box {
-            position: absolute; bottom: 145px; right: 50px;
-            background: #fff; color: #000; padding: 8px 20px; border-radius: 99px;
-            font-family: 'Inter', sans-serif; font-weight: 900; font-size: 20px;
-            display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-
-        /* Bug Vivo/Hora */
-        #bug-wrap {
-            position: absolute; top: 30px; left: 30px; display: flex; font-family: 'Inter', sans-serif; font-weight: 900; z-index: 100;
-        }
-        #bug-live { background: #ff0000; color: white; padding: 5px 15px; display: none; align-items: center; gap: 8px; border-radius: 4px 0 0 4px; }
-        .dot { width: 10px; height: 10px; background: white; border-radius: 50%; animation: pulse 1s infinite; }
-        #bug-clock { background: rgba(0,0,0,0.8); color: white; padding: 5px 15px; display: none; border-radius: 0 4px 4px 0; border-left: 1px solid rgba(255,255,255,0.2); }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .lt-title { color: white; font-size: 45px; font-weight: 900; line-height: 0.9; margin: 0; text-transform: uppercase; }
+        .lt-sub { color: var(--lt-color, #1f6feb); font-size: 20px; font-weight: 700; text-transform: uppercase; margin-top: 4px; letter-spacing: 1px;}
     </style>
 </head>
 <body>
-
     <div id="scoreboard">
         <div class="team-container" id="group-l">
             <div class="logo-box" id="logo-box-l"><img id="logo-l" src=""></div>
@@ -87,52 +59,56 @@
             <div class="name-box" id="name-v">VISITA</div>
             <div class="score-box" id="score-v">0</div>
         </div>
-        <div class="timer-box" id="timer-ui"><span id="clock">00:00</span><div id="extra-time-label">+0</div></div>
-    </div>
-
-    <div id="zocalo-container">
-        <div id="z-main" class="z-main-box">
-            <h1 id="z-title" class="z-title">OSCAR ABAD</h1>
-            <span id="z-subtitle" class="z-subtitle">DIRECTOR TÉCNICO</span>
+        <div class="timer-box" id="timer-ui">
+            <span id="clock">00:00</span>
+            <div id="extra-time-label">+0</div>
         </div>
     </div>
 
-    <div id="ticker-wrap">
-        <div id="ticker-label">NOTICIAS</div>
-        <div id="ticker-content">...</div>
-    </div>
-
-    <div id="social-box">@oscar_abad</div>
-
-    <div id="bug-wrap">
-        <div id="bug-live"><div class="dot"></div><span id="bug-txt">VIVO</span></div>
-        <div id="bug-clock">00:00:00</div>
+    <div id="lower-third">
+        <div class="lt-color-bar" id="lt-bar"></div>
+        <div class="lt-content">
+            <h1 class="lt-title" id="lt-title">OSCAR ABAD</h1>
+            <div class="lt-sub" id="lt-sub">DIRECTOR TÉCNICO</div>
+        </div>
     </div>
 
     <script>
+        const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         let seconds = 0, timerInterval = null, limitMin = 45, extraMin = 0;
 
-        client.on('connect', () => {
-            client.subscribe("marcador_oscar_pro_2024");
-            client.subscribe("sc_zocalo/stream");
-        });
-
+        client.on('connect', () => client.subscribe(ID_UNICO));
+        
         client.on('message', (topic, message) => {
             const { type, data } = JSON.parse(message.toString());
             
-            if (topic === "marcador_oscar_pro_2024") {
-                if (type === 'update_info') applySports(data);
-                if (type === 'control_ui') document.getElementById('scoreboard').classList.toggle('active', data.action === 'show');
-                if (type === 'control_clock') handleClock(data.command);
+            // Receptores de Deportes
+            if (type === 'update_info') applyUpdate(data);
+            if (type === 'control_ui') {
+                if(data.action === 'show') document.getElementById('scoreboard').classList.add('active');
+                else document.getElementById('scoreboard').classList.remove('active');
+            }
+            if (type === 'control_clock') {
+                if (data.command === 'start') startClock();
+                if (data.command === 'stop') clearInterval(timerInterval);
+                if (data.command === 'reset') { clearInterval(timerInterval); seconds = 0; updateClock(); }
             }
 
-            if (topic === "sc_zocalo/stream") {
-                applyZocalo(data);
+            // Receptores de Zócalo
+            if (type === 'update_zocalo') {
+                document.getElementById('lt-title').innerText = data.title;
+                document.getElementById('lt-sub').innerText = data.subtitle;
+                document.documentElement.style.setProperty('--lt-color', data.color);
+            }
+            if (type === 'control_zocalo') {
+                if(data.action === 'show') document.getElementById('lower-third').classList.add('active');
+                else document.getElementById('lower-third').classList.remove('active');
             }
         });
 
-        function applySports(d) {
+        // FUNCIONES DE DEPORTES
+        function applyUpdate(d) {
             document.getElementById('name-l').innerText = d.nameL;
             document.getElementById('score-l').innerText = d.scoreL;
             document.getElementById('name-l').style.backgroundColor = d.bgL;
@@ -150,44 +126,20 @@
             updateLogo('v', d.logoV);
 
             const p = document.getElementById('period-ui');
-            p.innerText = d.periodText; p.style.backgroundColor = d.periodBg; p.style.color = d.periodTxt;
-            
+            p.innerText = d.periodText; 
+            p.style.backgroundColor = d.periodBg; 
+            p.style.color = d.periodTxt;
+
             const tBox = document.getElementById('timer-ui');
-            tBox.style.backgroundColor = d.bgClock; tBox.style.color = d.txtClock;
-            
+            tBox.style.backgroundColor = d.bgClock; 
+            tBox.style.color = d.txtClock;
+
             limitMin = parseInt(d.limit); extraMin = parseInt(d.extra);
             const ex = document.getElementById('extra-time-label');
-            ex.innerText = `+${d.extra}`; ex.style.display = d.extra > 0 ? 'block' : 'none';
-            ex.style.backgroundColor = d.bgExtra; ex.style.color = d.txtExtra;
-        }
-
-        function applyZocalo(d) {
-            // Cintillo
-            const container = document.getElementById('zocalo-container');
-            container.classList.toggle('visible', d.lt.visible);
-            
-            const main = document.getElementById('z-main');
-            main.className = `z-main-box style-${d.lt.style}`;
-            main.style.backgroundColor = d.lt.color;
-            if(d.lt.style === 'neon') main.style.borderColor = d.lt.color;
-
-            document.getElementById('z-title').innerText = d.lt.title;
-            document.getElementById('z-subtitle').innerText = d.lt.subtitle;
-
-            // Ticker
-            const tickerWrap = document.getElementById('ticker-wrap');
-            tickerWrap.style.display = d.ticker.visible ? 'flex' : 'none';
-            document.getElementById('ticker-content').innerText = (d.ticker.text + " • ").repeat(5);
-
-            // Redes
-            const social = document.getElementById('social-box');
-            social.style.display = d.social.visible ? 'block' : 'none';
-            social.innerText = `${d.social.net.toUpperCase()}: ${d.social.handle}`;
-
-            // Bug
-            document.getElementById('bug-live').style.display = d.bug.showLive ? 'flex' : 'none';
-            document.getElementById('bug-txt').innerText = d.bug.text;
-            document.getElementById('bug-clock').style.display = d.bug.showClock ? 'block' : 'none';
+            ex.innerText = `+${d.extra}`;
+            ex.style.display = d.extra > 0 ? 'block' : 'none';
+            ex.style.backgroundColor = d.bgExtra; 
+            ex.style.color = d.txtExtra;
         }
 
         function updateLogo(team, url) {
@@ -197,12 +149,11 @@
             else { box.style.display = 'none'; }
         }
 
-        function handleClock(cmd) {
-            if (cmd === 'start') {
-                clearInterval(timerInterval);
-                timerInterval = setInterval(() => { if (seconds < (limitMin + extraMin) * 60) { seconds++; updateClock(); } }, 1000);
-            } else if (cmd === 'stop') clearInterval(timerInterval);
-            else { clearInterval(timerInterval); seconds = 0; updateClock(); }
+        function startClock() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (seconds < (limitMin + extraMin) * 60) { seconds++; updateClock(); }
+            }, 1000);
         }
 
         function updateClock() {
@@ -210,10 +161,6 @@
             const s = (seconds % 60).toString().padStart(2, '0');
             document.getElementById('clock').innerText = `${m}:${s}`;
         }
-
-        setInterval(() => {
-            document.getElementById('bug-clock').innerText = new Date().toLocaleTimeString();
-        }, 1000);
     </script>
 </body>
 </html>

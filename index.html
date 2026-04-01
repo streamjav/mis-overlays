@@ -17,7 +17,7 @@
         .logo-box { background: white; width: 55px; min-width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; }
         .logo-box img { width: 85%; height: 85%; object-fit: contain; }
         .name-box { font-size: 26px; text-transform: uppercase; display: flex; align-items: center; padding: 0 15px; flex-grow: 1; letter-spacing: 0.5px; color: white; }
-        .score-box { font-size: 38px; font-weight: 900; width: 55px; display: flex; align-items: center; justify-content: center; color: white; }
+        .score-box { font-size: 38px; font-weight: 900; width: 55px; display: flex; align-items: center; justify-content: center; transition: background 0.3s, color 0.3s; }
         .period-box { width: 42px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; z-index: 10; background: #dc2626; color: white; }
         .timer-box { width: 105px; min-width: 105px; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 40px; position: relative; }
         
@@ -112,6 +112,11 @@
             document.getElementById('score-l').innerText = d.scoreL;
             document.getElementById('name-l').style.backgroundColor = d.bgL;
             document.getElementById('name-l').style.color = d.txtL;
+            
+            const sBoxL = document.getElementById('score-l');
+            sBoxL.style.backgroundColor = d.bgScore;
+            sBoxL.style.color = d.txtScore;
+
             if(d.logoL) { document.getElementById('logo-l').src = d.logoL; document.getElementById('logo-box-l').style.display = 'flex'; }
             else document.getElementById('logo-box-l').style.display = 'none';
 
@@ -119,16 +124,13 @@
             document.getElementById('score-v').innerText = d.scoreV;
             document.getElementById('name-v').style.backgroundColor = d.bgV;
             document.getElementById('name-v').style.color = d.txtV;
+
+            const sBoxV = document.getElementById('score-v');
+            sBoxV.style.backgroundColor = d.bgScore;
+            sBoxV.style.color = d.txtScore;
+
             if(d.logoV) { document.getElementById('logo-v').src = d.logoV; document.getElementById('logo-box-v').style.display = 'flex'; }
             else document.getElementById('logo-box-v').style.display = 'none';
-
-            // Colores del marcador
-            const scoreL = document.getElementById('score-l');
-            const scoreV = document.getElementById('score-v');
-            scoreL.style.backgroundColor = d.bgScore;
-            scoreL.style.color = d.txtScore;
-            scoreV.style.backgroundColor = d.bgScore;
-            scoreV.style.color = d.txtScore;
 
             document.getElementById('period-ui').innerText = d.periodText;
             

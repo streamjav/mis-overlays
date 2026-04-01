@@ -64,37 +64,37 @@
     <div class="container">
         <div id="tab-deportes" class="tab-content active">
             <div class="card">
-                <div class="team-row">
-                    <div>
+                <div class="team-row" id="teams-ui-row">
+                    <div id="ui-local">
                         <div class="color-group">
                             <input type="color" id="bg-l" value="#0000FF" oninput="updateAll()">
                             <input type="color" id="txt-l" value="#FFFFFF" oninput="updateAll()">
                         </div>
-                        <label>LOCAL</label>
+                        <label id="label-l">LOCAL</label>
                         <input type="text" id="name-l" value="ALIANZA" oninput="updateAll()">
                         <input type="text" id="logo-l" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
                     </div>
 
                     <div class="score-box" id="display-score">0 - 0</div>
 
-                    <div>
+                    <div id="ui-visita">
                         <div class="color-group">
                             <input type="color" id="bg-v" value="#FFFF00" oninput="updateAll()">
                             <input type="color" id="txt-v" value="#000000" oninput="updateAll()">
                         </div>
-                        <label>VISITA</label>
+                        <label id="label-v">VISITA</label>
                         <input type="text" id="name-v" value="UNIVERSITARIO" oninput="updateAll()">
                         <input type="text" id="logo-v" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
                     </div>
                 </div>
 
-                <div class="team-row" style="margin-top:10px;">
-                    <div>
+                <div class="team-row" style="margin-top:10px;" id="btns-ui-row">
+                    <div id="btns-l">
                         <button class="btn btn-gol" onclick="changeScore('l', 1)">+ GOL</button>
                         <button class="btn btn-minus" onclick="changeScore('l', -1)">-1</button>
                     </div>
                     <div></div>
-                    <div>
+                    <div id="btns-v">
                         <button class="btn btn-gol" onclick="changeScore('v', 1)">+ GOL</button>
                         <button class="btn btn-minus" onclick="changeScore('v', -1)">-1</button>
                     </div>
@@ -106,6 +106,10 @@
                     <div style="flex:1">
                         <label>TIEMPO BASE</label>
                         <input type="number" id="limit-min" value="45" oninput="updateAll()">
+                        <div class="color-group" style="margin-top:5px;">
+                            <input type="color" id="bg-clock" value="#1a1a1a" oninput="updateAll()">
+                            <input type="color" id="txt-clock" value="#FFFFFF" oninput="updateAll()">
+                        </div>
                     </div>
                     <div style="flex:1">
                         <label>PERIODO</label>
@@ -121,6 +125,10 @@
                     <div style="flex:1">
                         <label>EXTRA (+MIN)</label>
                         <input type="number" id="extra-min" value="0" oninput="updateAll()">
+                        <div class="color-group" style="margin-top:5px;">
+                            <input type="color" id="bg-extra" value="#FF0000" oninput="updateAll()">
+                            <input type="color" id="txt-extra" value="#FFFFFF" oninput="updateAll()">
+                        </div>
                     </div>
                 </div>
                 <button class="btn btn-blue" style="margin-top:15px;" onclick="sendClock('start')">INICIAR / REANUDAR</button>
@@ -221,64 +229,159 @@
         const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         
+        let state = { scoreL: 0, scoreV: 0 };
+        let zState = {
+            lt: { visible: false, title: "OSCAR ABAD", subtitle: "Director General", color: "#3b82f6", style: "modern" },
+            ticker: { visible: false, text: "Escribe aquí las noticias..." },
+            logo: { visible: true },
+            bug: { showLive: true, showClock: true },
+            social: { visible: false, net: "instagram", handle: "@oscarabad" }
+        };
+
+        window.onload = () => {
+            loadSavedData();
+            updateAll();
+            updateZocalo();
+        };
+
         function switchTab(index) {
             const tabs = document.querySelectorAll('.tab');
             const contents = document.querySelectorAll('.tab-content');
-            tabs.forEach((t, i) => { t.classList.toggle('active', i === index); });
-            contents.forEach((c, i) => { c.classList.toggle('active', i === index); });
-            
+            tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+            contents.forEach((c, i) => c.classList.toggle('active', i === index));
             document.getElementById('sports-actions').style.display = index === 0 ? 'flex' : 'none';
             document.getElementById('zocalo-actions').style.display = index === 1 ? 'flex' : 'none';
         }
 
-        // --- LÓGICA DEPORTES ---
-        let state = { scoreL: 0, scoreV: 0 };
+        // --- PERSISTENCIA ---
+        function saveData() {
+            const currentData = {
+                scoreL: state.scoreL, scoreV: state.scoreV,
+                nameL: document.getElementById('name-l').value, nameV: document.getElementById('name-v').value,
+                logoL: document.getElementById('logo-l').value, logoV: document.getElementById('logo-v').value,
+                bgL: document.getElementById('bg-l').value, txtL: document.getElementById('txt-l').value,
+                bgV: document.getElementById('bg-v').value, txtV: document.getElementById('txt-v').value,
+                bgClock: document.getElementById('bg-clock').value, txtClock: document.getElementById('txt-clock').value,
+                bgExtra: document.getElementById('bg-extra').value, txtExtra: document.getElementById('txt-extra').value,
+                limit: document.getElementById('limit-min').value, extra: document.getElementById('extra-min').value,
+                period: document.getElementById('period-toggle').checked,
+                zState: zState
+            };
+            localStorage.setItem(ID_UNICO + '_storage', JSON.stringify(currentData));
+        }
+
+        function loadSavedData() {
+            const saved = localStorage.getItem(ID_UNICO + '_storage');
+            if (saved) {
+                const d = JSON.parse(saved);
+                state.scoreL = d.scoreL; state.scoreV = d.scoreV;
+                document.getElementById('name-l').value = d.nameL; document.getElementById('name-v').value = d.nameV;
+                document.getElementById('logo-l').value = d.logoL; document.getElementById('logo-v').value = d.logoV;
+                document.getElementById('bg-l').value = d.bgL; document.getElementById('txt-l').value = d.txtL;
+                document.getElementById('bg-v').value = d.bgV; document.getElementById('txt-v').value = d.txtV;
+                document.getElementById('bg-clock').value = d.bgClock || "#1a1a1a";
+                document.getElementById('txt-clock').value = d.txtClock || "#FFFFFF";
+                document.getElementById('bg-extra').value = d.bgExtra || "#FF0000";
+                document.getElementById('txt-extra').value = d.txtExtra || "#FFFFFF";
+                document.getElementById('limit-min').value = d.limit;
+                document.getElementById('extra-min').value = d.extra;
+                document.getElementById('period-toggle').checked = d.period;
+                
+                if(d.zState) {
+                    zState = d.zState;
+                    document.getElementById('z-title').value = zState.lt.title;
+                    document.getElementById('z-sub').value = zState.lt.subtitle;
+                    document.getElementById('z-style').value = zState.lt.style;
+                    document.getElementById('z-color').value = zState.lt.color;
+                    document.getElementById('z-ticker-text').value = zState.ticker.text;
+                    document.getElementById('z-soc-handle').value = zState.social.handle;
+                    document.getElementById('z-soc-net').value = zState.social.net;
+                    
+                    // Restaurar clases de botones
+                    document.getElementById('btn-z-lt').classList.toggle('active', zState.lt.visible);
+                    document.getElementById('btn-z-ticker').classList.toggle('active', zState.ticker.visible);
+                    document.getElementById('btn-z-logo').classList.toggle('active', zState.logo.visible);
+                    document.getElementById('btn-z-live').classList.toggle('active', zState.bug.showLive);
+                    document.getElementById('btn-z-clock').classList.toggle('active', zState.bug.showClock);
+                    document.getElementById('btn-z-social').classList.toggle('active', zState.social.visible);
+                }
+                updateScoreDisplay();
+                handlePeriodChange(true); // true para no resetear reloj al cargar
+            }
+        }
+
+        // --- DEPORTES ---
         function changeScore(team, val) {
             if(team === 'l') state.scoreL = Math.max(0, state.scoreL + val);
             if(team === 'v') state.scoreV = Math.max(0, state.scoreV + val);
-            document.getElementById('display-score').innerText = `${state.scoreL} - ${state.scoreV}`;
+            updateScoreDisplay();
+            updateAll();
+        }
+
+        function updateScoreDisplay() {
+            const is2T = document.getElementById('period-toggle').checked;
+            document.getElementById('display-score').innerText = is2T ? `${state.scoreV} - ${state.scoreL}` : `${state.scoreL} - ${state.scoreV}`;
+        }
+
+        function handlePeriodChange(isLoad = false) {
+            const is2T = document.getElementById('period-toggle').checked;
+            const rowTeams = document.getElementById('teams-ui-row');
+            const rowBtns = document.getElementById('btns-ui-row');
+            
+            if (is2T) {
+                rowTeams.style.flexDirection = 'row-reverse';
+                rowBtns.style.flexDirection = 'row-reverse';
+                document.getElementById('label-l').innerText = "VISITA (2T)";
+                document.getElementById('label-v').innerText = "LOCAL (2T)";
+            } else {
+                rowTeams.style.flexDirection = 'row';
+                rowBtns.style.flexDirection = 'row';
+                document.getElementById('label-l').innerText = "LOCAL";
+                document.getElementById('label-v').innerText = "VISITA";
+            }
+            
+            if(!isLoad) sendClock('reset');
+            updateScoreDisplay();
             updateAll();
         }
 
         function resetFull() {
-            if(confirm("¿RESET TOTAL?")) {
-                state.scoreL = 0;
-                state.scoreV = 0;
-                document.getElementById('display-score').innerText = "0 - 0";
-                sendClock('reset');
-                updateAll();
+            if(confirm("¿Deseas resetear todo el marcador y la memoria?")) {
+                localStorage.removeItem(ID_UNICO + '_storage');
+                location.reload();
             }
         }
 
         function updateAll() {
             const is2T = document.getElementById('period-toggle').checked;
+            // Si es 2T, invertimos lo que enviamos al index
             let data = {
-                nameL: document.getElementById('name-l').value,
-                nameV: document.getElementById('name-v').value,
-                scoreL: state.scoreL, scoreV: state.scoreV,
-                logoL: document.getElementById('logo-l').value, logoV: document.getElementById('logo-v').value,
-                bgL: document.getElementById('bg-l').value, txtL: document.getElementById('txt-l').value,
-                bgV: document.getElementById('bg-v').value, txtV: document.getElementById('txt-v').value,
-                limit: document.getElementById('limit-min').value, extra: document.getElementById('extra-min').value,
+                nameL: is2T ? document.getElementById('name-v').value : document.getElementById('name-l').value,
+                nameV: is2T ? document.getElementById('name-l').value : document.getElementById('name-v').value,
+                scoreL: is2T ? state.scoreV : state.scoreL,
+                scoreV: is2T ? state.scoreL : state.scoreV,
+                logoL: is2T ? document.getElementById('logo-v').value : document.getElementById('logo-l').value,
+                logoV: is2T ? document.getElementById('logo-l').value : document.getElementById('logo-v').value,
+                bgL: is2T ? document.getElementById('bg-v').value : document.getElementById('bg-l').value,
+                txtL: is2T ? document.getElementById('txt-v').value : document.getElementById('txt-l').value,
+                bgV: is2T ? document.getElementById('bg-l').value : document.getElementById('bg-v').value,
+                txtV: is2T ? document.getElementById('txt-l').value : document.getElementById('txt-v').value,
+                limit: document.getElementById('limit-min').value,
+                extra: document.getElementById('extra-min').value,
                 periodText: is2T ? "2T" : "1T",
-                bgClock: "#1a1a1a", txtClock: "#FFFFFF", periodBg: "#FF0000", periodTxt: "#FFFFFF", bgExtra: "#FF0000", txtExtra: "#000000"
+                bgClock: document.getElementById('bg-clock').value,
+                txtClock: document.getElementById('txt-clock').value,
+                bgExtra: document.getElementById('bg-extra').value,
+                txtExtra: document.getElementById('txt-extra').value
             };
             client.publish(ID_UNICO, JSON.stringify({ type: 'update_info', data: data }));
+            saveData();
         }
 
-        function handlePeriodChange() { sendClock('reset'); updateAll(); }
         function sendClock(cmd) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_clock', data: { command: cmd } })); }
         function sendUI(action) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } })); }
 
-        // --- LÓGICA ZÓCALOS ---
-        let zState = {
-            lt: { visible: false, title: "", subtitle: "", color: "#3b82f6", scale: 100, style: "modern" },
-            ticker: { visible: false, text: "", speed: 20 },
-            logo: { visible: true, url: "", size: 100, pos: "top-right" },
-            bug: { showLive: true, showClock: true, text: "VIVO" },
-            social: { visible: false, net: "instagram", handle: "" }
-        };
-
+        // --- ZÓCALOS ---
         function toggleZocalo(element) {
             if(element === 'lt') zState.lt.visible = !zState.lt.visible;
             if(element === 'ticker') zState.ticker.visible = !zState.ticker.visible;
@@ -286,21 +389,14 @@
             if(element === 'live') zState.bug.showLive = !zState.bug.showLive;
             if(element === 'clock') zState.bug.showClock = !zState.bug.showClock;
             if(element === 'social') zState.social.visible = !zState.social.visible;
-            
             document.getElementById('btn-z-' + element).classList.toggle('active');
             updateZocalo();
         }
 
         function bulkZocalo(v) {
-            zState.lt.visible = v;
-            zState.ticker.visible = v;
-            zState.logo.visible = v;
-            zState.bug.showLive = v;
-            zState.bug.showClock = v;
-            zState.social.visible = v;
-
-            const buttons = ['lt', 'ticker', 'logo', 'live', 'clock', 'social'];
-            buttons.forEach(id => {
+            zState.lt.visible = v; zState.ticker.visible = v; zState.logo.visible = v;
+            zState.bug.showLive = v; zState.bug.showClock = v; zState.social.visible = v;
+            ['lt', 'ticker', 'logo', 'live', 'clock', 'social'].forEach(id => {
                 const btn = document.getElementById('btn-z-' + id);
                 if(v) btn.classList.add('active'); else btn.classList.remove('active');
             });
@@ -316,6 +412,7 @@
             zState.social.net = document.getElementById('z-soc-net').value;
             zState.social.handle = document.getElementById('z-soc-handle').value;
             client.publish(ID_UNICO, JSON.stringify({ type: 'zocalo_update', data: zState }));
+            saveData();
         }
     </script>
 </body>

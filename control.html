@@ -41,15 +41,12 @@
         input:checked + .slider { background-color: #238636; }
         input:checked + .slider:before { transform: translateX(24px); }
 
-        .action-bar { position: fixed; bottom: 0; width: 100%; display: flex; gap: 10px; padding: 15px; background: #0d1117; box-sizing: border-box; border-top: 1px solid var(--border); z-index: 100; }
+        .action-bar { position: fixed; bottom: 0; width: 100%; display: none; gap: 10px; padding: 15px; background: #0d1117; box-sizing: border-box; border-top: 1px solid var(--border); z-index: 100; }
         label { font-size: 10px; color: #8b949e; font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; }
 
-        /* ESTILOS AÑADIDOS PARA ZÓCALOS (ACORDEONES) */
         details.section { background: rgba(15,23,42,0.35); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
         details.section summary { cursor: pointer; padding: 14px 16px; font-weight: 900; text-transform: uppercase; font-size: 12px; color: #e2e8f0; background: #161b22; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
-        details.section summary::-webkit-details-marker { display: none; }
         .section-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; text-align: left; }
-        .section-body input[type="text"], .section-body select, .section-body textarea { text-align: left; font-weight: normal; font-size: 13px; }
         .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn-z { padding: 10px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; color: white; background: #334155; transition: 0.2s; }
         .btn-z.active { background: #22c55e; color: #08111f; }
@@ -109,18 +106,9 @@
                     <div style="flex:1">
                         <label>TIEMPO BASE</label>
                         <input type="number" id="limit-min" value="45" oninput="updateAll()">
-                        <div class="color-group" style="margin-top:8px;">
-                            <input type="color" id="bg-clock" value="#1a1a1a" oninput="updateAll()">
-                            <input type="color" id="txt-clock" value="#FFFFFF" oninput="updateAll()">
-                        </div>
                     </div>
-                    
                     <div style="flex:1">
                         <label>PERIODO</label>
-                        <div class="color-group">
-                            <input type="color" id="bg-p" value="#FF0000" oninput="updateAll()">
-                            <input type="color" id="txt-p" value="#FFFFFF" oninput="updateAll()">
-                        </div>
                         <div class="switch-container">
                             <span style="font-size:11px; font-weight:bold;">1T</span>
                             <label class="switch">
@@ -130,37 +118,34 @@
                             <span style="font-size:11px; font-weight:bold;">2T</span>
                         </div>
                     </div>
-
                     <div style="flex:1">
                         <label>EXTRA (+MIN)</label>
                         <input type="number" id="extra-min" value="0" oninput="updateAll()">
-                        <div class="color-group" style="margin-top:8px;">
-                            <input type="color" id="bg-extra" value="#FF0000" oninput="updateAll()">
-                            <input type="color" id="txt-extra" value="#000000" oninput="updateAll()">
-                        </div>
                     </div>
                 </div>
-
                 <button class="btn btn-blue" style="margin-top:15px;" onclick="sendClock('start')">INICIAR / REANUDAR</button>
                 <div style="display:flex; gap:10px;">
                     <button class="btn" style="background:#30363d; color:white; flex:1;" onclick="sendClock('stop')">PAUSAR</button>
                     <button class="btn" style="background:#da3633; color:white; flex:1;" onclick="resetFull()">RESET TOTAL</button>
                 </div>
             </div>
-            
-            <div class="action-bar" id="sports-actions">
-                <button class="btn btn-gol" style="flex:1" onclick="sendUI('show')">MOSTRAR</button>
-                <button class="btn btn-minus" style="flex:1" onclick="sendUI('hide')">OCULTAR</button>
-            </div>
         </div>
 
         <div id="tab-zocalo" class="tab-content">
             <details class="section" open>
-                <summary><span>ZÓCALO</span></summary>
+                <summary><span>CINTILLO PRINCIPAL</span></summary>
                 <div class="section-body">
                     <button class="btn-z" id="btn-z-lt" onclick="toggleZocalo('lt')">MOSTRAR / OCULTAR CINTILLO</button>
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <div style="flex:1">
+                    <div class="grid2" style="margin-top:10px;">
+                        <div>
+                            <label>TÍTULO</label>
+                            <input type="text" id="z-title" value="OSCAR ABAD" oninput="updateZocalo()">
+                        </div>
+                        <div>
+                            <label>SUBTÍTULO</label>
+                            <input type="text" id="z-sub" value="Director General" oninput="updateZocalo()">
+                        </div>
+                        <div>
                             <label>ESTILO</label>
                             <select id="z-style" onchange="updateZocalo()">
                                 <option value="modern">MODERN</option>
@@ -175,29 +160,15 @@
                             </select>
                         </div>
                         <div>
-                            <label>COLOR</label>
-                            <input type="color" id="z-color" value="#3b82f6" style="width:50px; height:38px;" oninput="updateZocalo()">
-                        </div>
-                        <div style="flex:1">
-                            <label>TAMAÑO</label>
-                            <input type="range" id="z-scale" min="50" max="150" value="100" style="width:100%; margin-top:10px;" oninput="updateZocalo()">
-                        </div>
-                    </div>
-                    <div class="grid2" style="margin-top:10px;">
-                        <div>
-                            <label>TÍTULO PRINCIPAL</label>
-                            <input type="text" id="z-title" value="OSCAR ABAD" oninput="updateZocalo()">
-                        </div>
-                        <div>
-                            <label>SUBTÍTULO</label>
-                            <input type="text" id="z-sub" value="Director General" oninput="updateZocalo()">
+                            <label>COLOR ACCIÓN</label>
+                            <input type="color" id="z-color" value="#3b82f6" style="height:38px;" oninput="updateZocalo()">
                         </div>
                     </div>
                 </div>
             </details>
 
             <details class="section">
-                <summary><span>EXTRAS (LOGO, VIVO, RELOJ, REDES)</span></summary>
+                <summary><span>EXTRAS (LOGO, VIVO, RELOJ)</span></summary>
                 <div class="section-body">
                     <div style="display:flex; gap:10px; flex-wrap:wrap;">
                         <button class="btn-z active" id="btn-z-logo" onclick="toggleZocalo('logo')">LOGO</button>
@@ -205,41 +176,19 @@
                         <button class="btn-z active" id="btn-z-clock" onclick="toggleZocalo('clock')">RELOJ</button>
                         <button class="btn-z" id="btn-z-social" onclick="toggleZocalo('social')">REDES</button>
                     </div>
-                    
-                    <div class="grid2" style="margin-top:15px;">
+                    <div class="grid2" style="margin-top:10px;">
                         <div>
-                            <label>URL LOGO CANAL</label>
-                            <input type="text" id="z-logo-url" placeholder="URL Logo global" oninput="updateZocalo()">
+                            <label>USUARIO RED SOCIAL</label>
+                            <input type="text" id="z-soc-handle" value="@oscarabad" oninput="updateZocalo()">
                         </div>
                         <div>
-                            <label>TAMAÑO LOGO</label>
-                            <input type="range" id="z-logo-size" min="20" max="300" value="100" style="width:100%; margin-top:10px;" oninput="updateZocalo()">
-                        </div>
-                        <div>
-                            <label>POSICIÓN LOGO</label>
-                            <select id="z-logo-pos" onchange="updateZocalo()">
-                                <option value="top-right">ARRIBA DERECHA</option>
-                                <option value="top-left">ARRIBA IZQUIERDA</option>
-                                <option value="bottom-right">ABAJO DERECHA</option>
-                                <option value="bottom-left">ABAJO IZQUIERDA</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>TEXTO VIVO</label>
-                            <input type="text" id="z-bug-text" value="VIVO" oninput="updateZocalo()">
-                        </div>
-                        <div>
-                            <label>RED SOCIAL</label>
+                            <label>RED</label>
                             <select id="z-soc-net" onchange="updateZocalo()">
                                 <option value="instagram">INSTAGRAM</option>
                                 <option value="twitter">TWITTER / X</option>
                                 <option value="youtube">YOUTUBE</option>
                                 <option value="facebook">FACEBOOK</option>
                             </select>
-                        </div>
-                        <div>
-                            <label>USUARIO / HANDLE</label>
-                            <input type="text" id="z-soc-handle" value="@oscarabad" oninput="updateZocalo()">
                         </div>
                     </div>
                 </div>
@@ -248,17 +197,8 @@
             <details class="section">
                 <summary><span>NOTICIAS (CRAWL)</span></summary>
                 <div class="section-body">
-                    <div style="display:flex; gap:10px; align-items:flex-end;">
-                        <button class="btn-z" id="btn-z-ticker" onclick="toggleZocalo('ticker')">MOSTRAR / OCULTAR</button>
-                        <div style="flex:1;">
-                            <label>VELOCIDAD</label>
-                            <input type="range" id="z-ticker-speed" min="5" max="50" value="20" style="width:100%; margin-bottom:0;" oninput="updateZocalo()">
-                        </div>
-                    </div>
-                    <div style="margin-top:10px;">
-                        <label>TEXTO DE NOTICIAS</label>
-                        <textarea id="z-ticker-text" rows="3" oninput="updateZocalo()">Escribe aquí las noticias...</textarea>
-                    </div>
+                    <button class="btn-z" id="btn-z-ticker" onclick="toggleZocalo('ticker')">MOSTRAR / OCULTAR TICKER</button>
+                    <textarea id="z-ticker-text" rows="2" style="margin-top:10px;" oninput="updateZocalo()">Escribe aquí las noticias...</textarea>
                 </div>
             </details>
         </div>
@@ -267,28 +207,49 @@
         <div id="tab-playlist" class="tab-content"><div class="card">Próximamente...</div></div>
     </div>
 
+    <div class="action-bar" id="sports-actions" style="display:flex;">
+        <button class="btn btn-gol" style="flex:1" onclick="sendUI('show')">MOSTRAR MARCADOR</button>
+        <button class="btn btn-minus" style="flex:1" onclick="sendUI('hide')">OCULTAR MARCADOR</button>
+    </div>
+
+    <div class="action-bar" id="zocalo-actions">
+        <button class="btn btn-gol" style="flex:1" onclick="bulkZocalo(true)">MOSTRAR ZÓCALOS</button>
+        <button class="btn btn-minus" style="flex:1" onclick="bulkZocalo(false)">OCULTAR ZÓCALOS</button>
+    </div>
+
     <script>
         const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         
-        // --- NAVEGACIÓN PESTAÑAS ---
         function switchTab(index) {
             const tabs = document.querySelectorAll('.tab');
             const contents = document.querySelectorAll('.tab-content');
             tabs.forEach((t, i) => { t.classList.toggle('active', i === index); });
             contents.forEach((c, i) => { c.classList.toggle('active', i === index); });
+            
             document.getElementById('sports-actions').style.display = index === 0 ? 'flex' : 'none';
+            document.getElementById('zocalo-actions').style.display = index === 1 ? 'flex' : 'none';
         }
 
-        // --- LÓGICA DEPORTES (INTACTA) ---
+        // --- LÓGICA DEPORTES ---
         let state = { scoreL: 0, scoreV: 0 };
-        function handlePeriodChange() { sendClock('reset'); updateAll(); }
         function changeScore(team, val) {
             if(team === 'l') state.scoreL = Math.max(0, state.scoreL + val);
             if(team === 'v') state.scoreV = Math.max(0, state.scoreV + val);
             document.getElementById('display-score').innerText = `${state.scoreL} - ${state.scoreV}`;
             updateAll();
         }
+
+        function resetFull() {
+            if(confirm("¿RESET TOTAL?")) {
+                state.scoreL = 0;
+                state.scoreV = 0;
+                document.getElementById('display-score').innerText = "0 - 0";
+                sendClock('reset');
+                updateAll();
+            }
+        }
+
         function updateAll() {
             const is2T = document.getElementById('period-toggle').checked;
             let data = {
@@ -298,29 +259,24 @@
                 logoL: document.getElementById('logo-l').value, logoV: document.getElementById('logo-v').value,
                 bgL: document.getElementById('bg-l').value, txtL: document.getElementById('txt-l').value,
                 bgV: document.getElementById('bg-v').value, txtV: document.getElementById('txt-v').value,
-                bgClock: document.getElementById('bg-clock').value, txtClock: document.getElementById('txt-clock').value,
-                bgExtra: document.getElementById('bg-extra').value, txtExtra: document.getElementById('txt-extra').value,
                 limit: document.getElementById('limit-min').value, extra: document.getElementById('extra-min').value,
-                periodText: is2T ? "2T" : "1T", periodBg: document.getElementById('bg-p').value, periodTxt: document.getElementById('txt-p').value
+                periodText: is2T ? "2T" : "1T",
+                bgClock: "#1a1a1a", txtClock: "#FFFFFF", periodBg: "#FF0000", periodTxt: "#FFFFFF", bgExtra: "#FF0000", txtExtra: "#000000"
             };
-            if (is2T) {
-                const temp = { ...data };
-                data.nameL = temp.nameV; data.nameV = temp.nameL; data.scoreL = temp.scoreV; data.scoreV = temp.scoreL;
-                data.logoL = temp.logoV; data.logoV = temp.logoL; data.bgL = temp.bgV; data.bgV = temp.bgL; data.txtL = temp.txtV; data.txtV = temp.txtL;
-            }
             client.publish(ID_UNICO, JSON.stringify({ type: 'update_info', data: data }));
         }
-        function sendClock(cmd) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_clock', data: { command: cmd } })); updateAll(); }
+
+        function handlePeriodChange() { sendClock('reset'); updateAll(); }
+        function sendClock(cmd) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_clock', data: { command: cmd } })); }
         function sendUI(action) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } })); }
-        function resetFull() { if(confirm("¿RESET TOTAL?")) { state.scoreL = 0; state.scoreV = 0; sendClock('reset'); updateAll(); } }
 
         // --- LÓGICA ZÓCALOS ---
         let zState = {
-            lt: { visible: false, title: "OSCAR ABAD", subtitle: "Director General", color: "#3b82f6", scale: 100, style: "modern" },
-            ticker: { visible: false, text: "Escribe aquí las noticias...", speed: 20 },
+            lt: { visible: false, title: "", subtitle: "", color: "#3b82f6", scale: 100, style: "modern" },
+            ticker: { visible: false, text: "", speed: 20 },
             logo: { visible: true, url: "", size: 100, pos: "top-right" },
             bug: { showLive: true, showClock: true, text: "VIVO" },
-            social: { visible: false, net: "instagram", handle: "@oscarabad" }
+            social: { visible: false, net: "instagram", handle: "" }
         };
 
         function toggleZocalo(element) {
@@ -335,24 +291,30 @@
             updateZocalo();
         }
 
+        function bulkZocalo(v) {
+            zState.lt.visible = v;
+            zState.ticker.visible = v;
+            zState.logo.visible = v;
+            zState.bug.showLive = v;
+            zState.bug.showClock = v;
+            zState.social.visible = v;
+
+            const buttons = ['lt', 'ticker', 'logo', 'live', 'clock', 'social'];
+            buttons.forEach(id => {
+                const btn = document.getElementById('btn-z-' + id);
+                if(v) btn.classList.add('active'); else btn.classList.remove('active');
+            });
+            updateZocalo();
+        }
+
         function updateZocalo() {
             zState.lt.title = document.getElementById('z-title').value;
             zState.lt.subtitle = document.getElementById('z-sub').value;
             zState.lt.color = document.getElementById('z-color').value;
-            zState.lt.scale = document.getElementById('z-scale').value;
             zState.lt.style = document.getElementById('z-style').value;
-            
-            zState.logo.url = document.getElementById('z-logo-url').value;
-            zState.logo.size = document.getElementById('z-logo-size').value;
-            zState.logo.pos = document.getElementById('z-logo-pos').value;
-            
             zState.ticker.text = document.getElementById('z-ticker-text').value;
-            zState.ticker.speed = document.getElementById('z-ticker-speed').value;
-            
-            zState.bug.text = document.getElementById('z-bug-text').value;
             zState.social.net = document.getElementById('z-soc-net').value;
             zState.social.handle = document.getElementById('z-soc-handle').value;
-
             client.publish(ID_UNICO, JSON.stringify({ type: 'zocalo_update', data: zState }));
         }
     </script>

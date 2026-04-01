@@ -17,7 +17,7 @@
         .logo-box { background: white; width: 55px; min-width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; }
         .logo-box img { width: 85%; height: 85%; object-fit: contain; }
         .name-box { font-size: 26px; text-transform: uppercase; display: flex; align-items: center; padding: 0 15px; flex-grow: 1; letter-spacing: 0.5px; color: white; }
-        .score-box { font-size: 38px; font-weight: 900; width: 55px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); color: white; }
+        .score-box { font-size: 38px; font-weight: 900; width: 55px; display: flex; align-items: center; justify-content: center; color: white; }
         .period-box { width: 42px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; z-index: 10; background: #dc2626; color: white; }
         .timer-box { width: 105px; min-width: 105px; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 40px; position: relative; }
         
@@ -34,7 +34,6 @@
         .z-sub { display: inline-flex; align-items: center; width: fit-content; padding: 7px 16px; border-radius: 999px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; position: relative; z-index: 1; }
         .z-accent-bar { width: 12px; border-radius: 999px; align-self: stretch; flex: 0 0 auto; position: relative; z-index: 1; }
 
-        /* Estilos de Zócalos */
         .z-modern .z-title { background: linear-gradient(135deg, rgba(15,23,42,0.97), rgba(30,41,59,0.95)); }
         .z-modern h1 { font-size: 50px; color: #fff; }
         .z-modern .z-sub { margin-left: 18px; color: white; }
@@ -123,9 +122,16 @@
             if(d.logoV) { document.getElementById('logo-v').src = d.logoV; document.getElementById('logo-box-v').style.display = 'flex'; }
             else document.getElementById('logo-box-v').style.display = 'none';
 
+            // Colores del marcador
+            const scoreL = document.getElementById('score-l');
+            const scoreV = document.getElementById('score-v');
+            scoreL.style.backgroundColor = d.bgScore;
+            scoreL.style.color = d.txtScore;
+            scoreV.style.backgroundColor = d.bgScore;
+            scoreV.style.color = d.txtScore;
+
             document.getElementById('period-ui').innerText = d.periodText;
             
-            // Colores de Reloj y Extra
             const timerBox = document.getElementById('timer-ui');
             timerBox.style.backgroundColor = d.bgClock;
             timerBox.style.color = d.txtClock;

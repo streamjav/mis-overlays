@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@700&family=Inter:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        /* --- ESTILOS BASE --- */
         body { margin: 0; padding: 0; overflow: hidden; background: transparent; font-family: 'Roboto Condensed', sans-serif; }
         
-        /* --- MARCADOR DEPORTES (TOP) --- */
+        /* --- MARCADOR DEPORTIVO --- */
         #scoreboard {
             position: absolute; top: 40px; left: 50px; display: flex; align-items: stretch; height: 55px;
             filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
@@ -17,7 +18,7 @@
         .team-container { display: flex; align-items: stretch; flex-grow: 1; }
         .logo-box { background: white; width: 55px; min-width: 55px; height: 55px; display: none; justify-content: center; align-items: center; }
         .logo-box img { width: 85%; height: 85%; object-fit: contain; }
-        .name-box { font-size: 26px; text-transform: uppercase; min-width: 130px; display: flex; align-items: center; padding: 0 15px; flex-grow: 1; }
+        .name-box { font-size: 26px; text-transform: uppercase; min-width: 130px; display: flex; align-items: center; padding: 0 15px; flex-grow: 1; letter-spacing: 0.5px; }
         .score-box { font-size: 38px; font-weight: 900; width: 55px; display: flex; align-items: center; justify-content: center; }
         .period-box { width: 42px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; z-index: 10; }
         .timer-box { width: 105px; min-width: 105px; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 40px; position: relative; }
@@ -25,32 +26,38 @@
         #group-l { flex-direction: row; }
         #group-v { flex-direction: row-reverse; }
 
-        /* --- ZÓCALOS (BOTTOM) --- */
-        .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; transition: 0.5s cubic-bezier(0.16,1,0.3,1); opacity: 0; transform: translateY(30px); }
+        /* --- SISTEMA DE ZÓCALOS (LOWER THIRDS) --- */
+        .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; transition: 0.45s cubic-bezier(0.16,1,0.3,1); opacity: 0; transform: translateY(50px); }
         .zocalo-visible { opacity: 1; transform: translateY(0); }
-        .z-base { display: flex; flex-direction: column; font-family: 'Inter', sans-serif; }
-        .z-title { padding: 12px 25px; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .z-title h1 { margin: 0; font-size: 40px; font-weight: 900; color: white; text-transform: uppercase; line-height: 1; }
-        .z-sub { padding: 5px 20px; font-weight: 700; text-transform: uppercase; font-size: 16px; color: white; width: fit-content; margin-top: -2px; }
+        .z-base { display: inline-flex; flex-direction: column; gap: 6px; font-family: 'Inter', sans-serif; }
+        .z-title { display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 10px; box-shadow: 0 16px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); position: relative; }
+        .z-title h1 { margin: 0; font-size: 45px; font-weight: 900; line-height: 0.95; letter-spacing: -1px; text-transform: uppercase; }
+        .z-sub { display: inline-flex; width: fit-content; padding: 6px 16px; border-radius: 999px; font-weight: 800; text-transform: uppercase; font-size: 18px; }
         
-        /* Estilos Zócalo */
-        .z-modern .z-title { border-left: 10px solid white; }
-        .z-neon .z-title { background: #000; border: 2px solid white; }
-        .z-neon h1 { text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-        .z-glass .z-title { backdrop-filter: blur(10px); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
+        /* Estilos específicos (Modern, Glass, Neon...) */
+        .z-modern .z-title { background: #1e293b; color: white; border-left: 8px solid; }
+        .z-modern .z-sub { margin-left: 15px; color: white; }
+        
+        .z-neon .z-title { background: rgba(0,0,0,0.9); border: 1px solid; }
+        .z-neon h1 { text-shadow: 0 0 10px currentColor; }
 
-        /* --- TICKER NOTICIAS --- */
-        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 45px; background: #000; display: none; align-items: center; border-top: 3px solid white; }
-        .ticker-label { background: white; color: black; padding: 0 20px; height: 100%; display: flex; align-items: center; font-weight: 900; z-index: 5; }
-        .ticker-content { flex: 1; overflow: hidden; white-space: nowrap; color: white; font-size: 18px; font-weight: 700; }
-        .ticker-move { display: inline-block; animation: ticker-anim 20s linear infinite; padding-left: 100%; }
-        @keyframes ticker-anim { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        /* --- TICKER (NOTICIAS) --- */
+        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 50px; background: #0f172a; border-top: 4px solid #dc2626; display: none; align-items: center; font-family: 'Inter', sans-serif; }
+        .ticker-label { background: #dc2626; color: white; padding: 0 25px; height: 100%; display: flex; align-items: center; font-weight: 900; font-style: italic; z-index: 2; }
+        .ticker-content { flex: 1; overflow: hidden; white-space: nowrap; color: white; font-size: 20px; font-weight: 700; text-transform: uppercase; }
+        .ticker-move { display: inline-block; animation: ticker linear infinite; padding-left: 100%; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
-        /* --- REDES Y BUG --- */
-        .social-pill { position: absolute; bottom: 140px; right: 50px; background: white; padding: 8px 20px; border-radius: 5px; display: none; font-weight: 900; font-size: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .bug-container { position: absolute; top: 30px; left: 30px; display: flex; font-family: monospace; font-weight: bold; }
-        .bug-live { background: #ff0000; color: white; padding: 5px 12px; display: none; }
-        .bug-clock { background: rgba(0,0,0,0.7); color: white; padding: 5px 12px; display: none; }
+        /* --- REDES SOCIALES --- */
+        .social-pill { position: absolute; bottom: 140px; right: 50px; background: white; padding: 10px 25px; border-radius: 999px; display: none; align-items: center; gap: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 3px solid #0f172a; }
+        .social-icon { background: #ec4899; color: white; padding: 4px 10px; border-radius: 6px; font-weight: 900; font-size: 12px; }
+        .social-handle { font-size: 24px; font-weight: 900; }
+
+        /* --- VIVO Y RELOJ --- */
+        .top-left-bits { position: absolute; top: 30px; left: 30px; display: flex; z-index: 100; font-family: monospace; }
+        .bug-live { background: #dc2626; color: white; padding: 6px 15px; font-weight: 900; display: none; align-items: center; gap: 8px; border-radius: 5px 0 0 5px; }
+        .bug-dot { width: 10px; height: 10px; background: white; border-radius: 50%; }
+        .clock-chip { background: rgba(0,0,0,0.8); color: white; padding: 6px 15px; display: none; border-radius: 0 5px 5px 0; border-left: 1px solid rgba(255,255,255,0.2); }
     </style>
 </head>
 <body>
@@ -69,85 +76,113 @@
         <div class="timer-box" id="timer-ui"><span id="clock">00:00</span><div id="extra-time-label">+0</div></div>
     </div>
 
-    <div id="z-wrap" class="zocalo-wrap">
+    <div id="zocalo-master" class="zocalo-wrap">
         <div class="z-base" id="z-container">
-            <div class="z-title" id="z-title-box"><h1 id="z-main">TITULO</h1></div>
+            <div class="z-title" id="z-title-box">
+                <h1 id="z-main-text">TITULO</h1>
+            </div>
             <div class="z-sub" id="z-sub-box">SUBTITULO</div>
         </div>
     </div>
 
-    <div class="ticker-bar" id="t-bar">
-        <div class="ticker-label">INFO</div>
-        <div class="ticker-content"><div class="ticker-move" id="t-text">...</div></div>
+    <div class="ticker-bar" id="ticker-ui">
+        <div class="ticker-label">NOTICIAS</div>
+        <div class="ticker-content"><div class="ticker-move" id="ticker-text">...</div></div>
     </div>
 
-    <div class="social-pill" id="soc-pill">IG: @USER</div>
-    <div class="bug-container">
-        <div class="bug-live" id="bug-l">VIVO</div>
-        <div class="bug-clock" id="bug-c">00:00</div>
+    <div class="social-pill" id="social-ui">
+        <div class="social-icon" id="social-net">IG</div>
+        <div class="social-handle" id="social-handle">@user</div>
+    </div>
+
+    <div class="top-left-bits">
+        <div class="bug-live" id="bug-live"><div class="bug-dot"></div><span id="bug-text">VIVO</span></div>
+        <div class="clock-chip" id="bug-clock">00:00:00</div>
     </div>
 
     <script>
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+        
+        // --- LÓGICA DEPORTES ---
         let seconds = 0, timerInterval = null, limitMin = 45, extraMin = 0;
-
-        client.on('connect', () => {
-            client.subscribe("marcador_oscar_pro_2024");
-            client.subscribe("sc_zocalo/stream");
-        });
+        client.subscribe("marcador_oscar_pro_2024");
+        
+        // --- LÓGICA ZÓCALOS ---
+        client.subscribe("sc_zocalo/stream");
 
         client.on('message', (topic, message) => {
             const { type, data } = JSON.parse(message.toString());
             
             if (topic === "marcador_oscar_pro_2024") {
-                if (type === 'update_info') applySports(data);
+                if (type === 'update_info') applySportsUpdate(data);
                 if (type === 'control_ui') document.getElementById('scoreboard').classList.toggle('active', data.action === 'show');
                 if (type === 'control_clock') handleClock(data.command);
             }
-            if (topic === "sc_zocalo/stream") applyZocalo(data);
+
+            if (topic === "sc_zocalo/stream") {
+                applyZocaloUpdate(data);
+            }
         });
 
-        function applySports(d) {
-            ['l','v'].forEach(t => {
-                document.getElementById(`name-${t}`).innerText = d[`name${t.toUpperCase()}`];
-                document.getElementById(`score-${t}`).innerText = d[`score${t.toUpperCase()}`];
-                document.getElementById(`name-${t}`).style.backgroundColor = d[`bg${t.toUpperCase()}`];
-                document.getElementById(`name-${t}`).style.color = d[`txt${t.toUpperCase()}`];
-                document.getElementById(`score-${t}`).style.backgroundColor = d[`bg${t.toUpperCase()}`];
-                document.getElementById(`score-${t}`).style.color = d[`txt${t.toUpperCase()}`];
-                const lBox = document.getElementById(`logo-box-${t}`);
-                const lImg = document.getElementById(`logo-${t}`);
-                if(d[`logo${t.toUpperCase()}`]) { lBox.style.display = 'flex'; lImg.src = d[`logo${t.toUpperCase()}`]; }
-                else lBox.style.display = 'none';
-            });
+        function applySportsUpdate(d) {
+            document.getElementById('name-l').innerText = d.nameL;
+            document.getElementById('score-l').innerText = d.scoreL;
+            document.getElementById('name-l').style.backgroundColor = d.bgL;
+            document.getElementById('name-l').style.color = d.txtL;
+            document.getElementById('score-l').style.backgroundColor = d.bgL;
+            document.getElementById('score-l').style.color = d.txtL;
+            
+            document.getElementById('name-v').innerText = d.nameV;
+            document.getElementById('score-v').innerText = d.scoreV;
+            document.getElementById('name-v').style.backgroundColor = d.bgV;
+            document.getElementById('name-v').style.color = d.txtV;
+            document.getElementById('score-v').style.backgroundColor = d.bgV;
+            document.getElementById('score-v').style.color = d.txtV;
+
             const p = document.getElementById('period-ui');
             p.innerText = d.periodText; p.style.backgroundColor = d.periodBg; p.style.color = d.periodTxt;
+
             const tBox = document.getElementById('timer-ui');
             tBox.style.backgroundColor = d.bgClock; tBox.style.color = d.txtClock;
+            
             limitMin = parseInt(d.limit); extraMin = parseInt(d.extra);
             const ex = document.getElementById('extra-time-label');
             ex.innerText = `+${d.extra}`; ex.style.display = d.extra > 0 ? 'block' : 'none';
             ex.style.backgroundColor = d.bgExtra; ex.style.color = d.txtExtra;
         }
 
-        function applyZocalo(d) {
-            const w = document.getElementById('z-wrap');
-            w.className = `zocalo-wrap ${d.lt.visible ? 'zocalo-visible' : ''} z-${d.lt.style}`;
-            document.getElementById('z-main').innerText = d.lt.title;
+        function applyZocaloUpdate(d) {
+            // Título y Subtítulo
+            const wrap = document.getElementById('zocalo-master');
+            wrap.className = `zocalo-wrap ${d.lt.visible ? 'zocalo-visible' : ''} z-${d.lt.style}`;
+            wrap.style.transform = `scale(${d.lt.scale / 100})`;
+            
+            document.getElementById('z-main-text').innerText = d.lt.title;
             document.getElementById('z-sub-box').innerText = d.lt.subtitle;
-            document.getElementById('z-title-box').style.backgroundColor = d.lt.color;
-            document.getElementById('z-sub-box').style.backgroundColor = (d.lt.style === 'glass') ? 'rgba(0,0,0,0.5)' : '#333';
             
-            const tBar = document.getElementById('t-bar');
-            tBar.style.display = d.ticker.visible ? 'flex' : 'none';
-            document.getElementById('t-text').innerText = `${d.ticker.text} • ${d.ticker.text} • `;
-            
-            const soc = document.getElementById('soc-pill');
-            soc.style.display = d.social.visible ? 'block' : 'none';
-            soc.innerText = `${d.social.net.toUpperCase()}: ${d.social.handle}`;
+            const titleBox = document.getElementById('z-title-box');
+            titleBox.style.borderColor = d.lt.color;
+            titleBox.style.color = (d.lt.style === 'modern' || d.lt.style === 'neon') ? 'white' : d.lt.color;
+            if(d.lt.style === 'modern') titleBox.style.borderLeftColor = d.lt.color;
 
-            document.getElementById('bug-l').style.display = d.bug.showLive ? 'block' : 'none';
-            document.getElementById('bug-c').style.display = d.bug.showClock ? 'block' : 'none';
+            document.getElementById('z-sub-box').style.backgroundColor = d.lt.color;
+
+            // Ticker
+            const ticker = document.getElementById('ticker-ui');
+            ticker.style.display = d.ticker.visible ? 'flex' : 'none';
+            document.getElementById('ticker-text').innerText = `${d.ticker.text} • ${d.ticker.text}`;
+            document.getElementById('ticker-text').style.animationDuration = `${60 - d.ticker.speed}s`;
+
+            // Social
+            const social = document.getElementById('social-ui');
+            social.style.display = d.social.visible ? 'flex' : 'none';
+            document.getElementById('social-handle').innerText = d.social.handle;
+            document.getElementById('social-net').innerText = d.social.net.toUpperCase();
+
+            // Bug Live / Clock
+            document.getElementById('bug-live').style.display = d.bug.showLive ? 'flex' : 'none';
+            document.getElementById('bug-clock').style.display = d.bug.showClock ? 'flex' : 'none';
+            document.getElementById('bug-text').innerText = d.bug.text;
         }
 
         function handleClock(cmd) {
@@ -165,8 +200,7 @@
         }
 
         setInterval(() => {
-            const now = new Date();
-            document.getElementById('bug-c').innerText = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+            document.getElementById('bug-clock').innerText = new Date().toLocaleTimeString();
         }, 1000);
     </script>
 </body>

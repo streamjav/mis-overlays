@@ -26,7 +26,7 @@
         input[type="text"], input[type="number"], select, textarea { width: 100%; background: #010409; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; box-sizing: border-box; font-weight: bold; }
         input[type="text"], input[type="number"] { text-align: center; }
         
-        .score-box { font-size: 28px; font-weight: bold; color: var(--accent); border: 1px solid var(--accent); padding: 5px 15px; border-radius: 8px; min-width: 70px; text-align: center; }
+        .score-box { font-size: 28px; font-weight: bold; color: var(--accent); border: 1px solid var(--accent); padding: 5px 15px; border-radius: 8px; min-width: 70px; text-align: center; transition: 0.3s; }
 
         .btn { border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; margin-top: 8px; }
         .btn-gol { background: #238636; color: white; }
@@ -75,11 +75,11 @@
                         <input type="text" id="logo-l" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
                     </div>
 
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                    <div style="text-align: center;">
                         <div class="score-box" id="display-score">0 - 0</div>
-                        <div class="color-group">
-                            <input type="color" id="bg-score" value="#161b22" oninput="updateAll(); document.getElementById('display-score').style.backgroundColor = this.value;">
-                            <input type="color" id="txt-score" value="#1f6feb" oninput="updateAll(); document.getElementById('display-score').style.color = this.value;">
+                        <div class="color-group" style="margin-top:8px;">
+                            <input type="color" id="bg-score-global" value="#1f6feb" oninput="updateAll()">
+                            <input type="color" id="txt-score-global" value="#FFFFFF" oninput="updateAll()">
                         </div>
                     </div>
 
@@ -259,7 +259,6 @@
             document.getElementById('zocalo-actions').style.display = index === 1 ? 'flex' : 'none';
         }
 
-        // --- PERSISTENCIA ---
         function saveData() {
             const currentData = {
                 scoreL: state.scoreL, scoreV: state.scoreV,
@@ -267,9 +266,9 @@
                 logoL: document.getElementById('logo-l').value, logoV: document.getElementById('logo-v').value,
                 bgL: document.getElementById('bg-l').value, txtL: document.getElementById('txt-l').value,
                 bgV: document.getElementById('bg-v').value, txtV: document.getElementById('txt-v').value,
+                bgScore: document.getElementById('bg-score-global').value, txtScore: document.getElementById('txt-score-global').value,
                 bgClock: document.getElementById('bg-clock').value, txtClock: document.getElementById('txt-clock').value,
                 bgExtra: document.getElementById('bg-extra').value, txtExtra: document.getElementById('txt-extra').value,
-                bgScore: document.getElementById('bg-score').value, txtScore: document.getElementById('txt-score').value,
                 limit: document.getElementById('limit-min').value, extra: document.getElementById('extra-min').value,
                 period: document.getElementById('period-toggle').checked,
                 zState: zState
@@ -286,17 +285,12 @@
                 document.getElementById('logo-l').value = d.logoL; document.getElementById('logo-v').value = d.logoV;
                 document.getElementById('bg-l').value = d.bgL; document.getElementById('txt-l').value = d.txtL;
                 document.getElementById('bg-v').value = d.bgV; document.getElementById('txt-v').value = d.txtV;
+                document.getElementById('bg-score-global').value = d.bgScore || "#1f6feb";
+                document.getElementById('txt-score-global').value = d.txtScore || "#FFFFFF";
                 document.getElementById('bg-clock').value = d.bgClock || "#1a1a1a";
                 document.getElementById('txt-clock').value = d.txtClock || "#FFFFFF";
                 document.getElementById('bg-extra').value = d.bgExtra || "#FF0000";
                 document.getElementById('txt-extra').value = d.txtExtra || "#FFFFFF";
-                
-                // Cargar datos del marcador
-                document.getElementById('bg-score').value = d.bgScore || "#161b22";
-                document.getElementById('txt-score').value = d.txtScore || "#1f6feb";
-                document.getElementById('display-score').style.backgroundColor = document.getElementById('bg-score').value;
-                document.getElementById('display-score').style.color = document.getElementById('txt-score').value;
-
                 document.getElementById('limit-min').value = d.limit;
                 document.getElementById('extra-min').value = d.extra;
                 document.getElementById('period-toggle').checked = d.period;
@@ -323,7 +317,6 @@
             }
         }
 
-        // --- DEPORTES ---
         function changeScore(team, val) {
             if(team === 'l') state.scoreL = Math.max(0, state.scoreL + val);
             if(team === 'v') state.scoreV = Math.max(0, state.scoreV + val);
@@ -333,7 +326,12 @@
 
         function updateScoreDisplay() {
             const is2T = document.getElementById('period-toggle').checked;
-            document.getElementById('display-score').innerText = is2T ? `${state.scoreV} - ${state.scoreL}` : `${state.scoreL} - ${state.scoreV}`;
+            const scoreLabel = is2T ? `${state.scoreV} - ${state.scoreL}` : `${state.scoreL} - ${state.scoreV}`;
+            const display = document.getElementById('display-score');
+            display.innerText = scoreLabel;
+            display.style.backgroundColor = document.getElementById('bg-score-global').value;
+            display.style.color = document.getElementById('txt-score-global').value;
+            display.style.borderColor = document.getElementById('txt-score-global').value;
         }
 
         function handlePeriodChange(isLoad = false) {
@@ -378,24 +376,24 @@
                 txtL: is2T ? document.getElementById('txt-v').value : document.getElementById('txt-l').value,
                 bgV: is2T ? document.getElementById('bg-l').value : document.getElementById('bg-v').value,
                 txtV: is2T ? document.getElementById('txt-l').value : document.getElementById('txt-v').value,
+                bgScore: document.getElementById('bg-score-global').value,
+                txtScore: document.getElementById('txt-score-global').value,
                 limit: document.getElementById('limit-min').value,
                 extra: document.getElementById('extra-min').value,
                 periodText: is2T ? "2T" : "1T",
                 bgClock: document.getElementById('bg-clock').value,
                 txtClock: document.getElementById('txt-clock').value,
                 bgExtra: document.getElementById('bg-extra').value,
-                txtExtra: document.getElementById('txt-extra').value,
-                bgScore: document.getElementById('bg-score').value,
-                txtScore: document.getElementById('txt-score').value
+                txtExtra: document.getElementById('txt-extra').value
             };
             client.publish(ID_UNICO, JSON.stringify({ type: 'update_info', data: data }));
+            updateScoreDisplay();
             saveData();
         }
 
         function sendClock(cmd) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_clock', data: { command: cmd } })); }
         function sendUI(action) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } })); }
 
-        // --- ZÓCALOS ---
         function toggleZocalo(element) {
             if(element === 'lt') zState.lt.visible = !zState.lt.visible;
             if(element === 'ticker') zState.ticker.visible = !zState.ticker.visible;

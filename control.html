@@ -4,43 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <title>Control de Deportes PRO</title>
+    <title>Control de Deportes PRO V2</title>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --accent: #1f6feb; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 100px; }
         
-        /* Pestañas */
         .tabs { display: flex; background: #010409; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; cursor: pointer; color: #8b949e; border-bottom: 2px solid transparent; font-size: 13px; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; color: #8b949e; border-bottom: 2px solid transparent; font-size: 12px; }
         .tab.active { color: white; border-bottom: 2px solid var(--accent); background: var(--card); }
 
         .container { padding: 15px; max-width: 500px; margin: auto; }
         .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 15px; margin-bottom: 15px; }
 
-        /* Filas de Equipos */
         .team-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
-        .color-group { display: flex; gap: 5px; margin-bottom: 10px; justify-content: center; }
-        input[type="color"] { width: 35px; height: 35px; border: none; border-radius: 5px; background: none; cursor: pointer; }
+        .color-group { display: flex; gap: 5px; margin-bottom: 8px; justify-content: center; }
+        input[type="color"] { width: 30px; height: 30px; border: none; border-radius: 4px; background: none; cursor: pointer; padding: 0; }
         
-        input[type="text"], input[type="number"] { width: 100%; background: #010409; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; box-sizing: border-box; text-align: center; }
+        input[type="text"], input[type="number"] { width: 100%; background: #010409; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; box-sizing: border-box; text-align: center; font-weight: bold; }
         
-        .score-box { font-size: 32px; font-weight: bold; color: var(--accent); border: 1px solid var(--accent); padding: 10px 20px; border-radius: 8px; min-width: 80px; text-align: center; }
+        .score-box { font-size: 28px; font-weight: bold; color: var(--accent); border: 1px solid var(--accent); padding: 5px 15px; border-radius: 8px; min-width: 70px; text-align: center; }
 
         .btn { border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; margin-top: 8px; }
-        .btn-gol { background: #238636; color: white; font-size: 16px; }
+        .btn-gol { background: #238636; color: white; }
         .btn-minus { background: #da3633; color: white; }
         .btn-blue { background: var(--accent); color: white; }
 
-        /* Perilla de Inversión e Interruptor 1T/2T */
-        .switch-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 15px 0; }
-        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 22px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--accent); }
-        input:checked + .slider:before { transform: translateX(26px); }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #238636; }
+        input:checked + .slider:before { transform: translateX(24px); }
 
         .action-bar { position: fixed; bottom: 0; width: 100%; display: flex; gap: 10px; padding: 15px; background: #0d1117; box-sizing: border-box; border-top: 1px solid var(--border); }
+        label { font-size: 10px; color: #8b949e; font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -52,7 +50,7 @@
         <div class="tab">PLAYLIST</div>
     </div>
 
-    <div class="container" id="tab-deportes">
+    <div class="container">
         <div class="card">
             <div class="team-row">
                 <div>
@@ -60,9 +58,9 @@
                         <input type="color" id="bg-l" value="#0000FF" oninput="updateAll()">
                         <input type="color" id="txt-l" value="#FFFFFF" oninput="updateAll()">
                     </div>
-                    <label style="font-size: 10px; color: #8b949e;">LOCAL</label>
+                    <label>LOCAL</label>
                     <input type="text" id="name-l" value="ALIANZA" oninput="updateAll()">
-                    <input type="text" id="logo-l" placeholder="+ LOGO (URL)" style="margin-top:5px; font-size:10px;" oninput="updateAll()">
+                    <input type="text" id="logo-l" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
                 </div>
 
                 <div class="score-box" id="display-score">0 - 0</div>
@@ -72,13 +70,13 @@
                         <input type="color" id="bg-v" value="#FFFF00" oninput="updateAll()">
                         <input type="color" id="txt-v" value="#000000" oninput="updateAll()">
                     </div>
-                    <label style="font-size: 10px; color: #8b949e;">VISITA</label>
+                    <label>VISITA</label>
                     <input type="text" id="name-v" value="UNIVERSITARIO" oninput="updateAll()">
-                    <input type="text" id="logo-v" placeholder="+ LOGO (URL)" style="margin-top:5px; font-size:10px;" oninput="updateAll()">
+                    <input type="text" id="logo-v" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
                 </div>
             </div>
 
-            <div class="team-row" style="margin-top:15px;">
+            <div class="team-row" style="margin-top:10px;">
                 <div>
                     <button class="btn btn-gol" onclick="changeScore('l', 1)">+ GOL</button>
                     <button class="btn btn-minus" onclick="changeScore('l', -1)">-1</button>
@@ -92,44 +90,45 @@
         </div>
 
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; text-align: center;">
+                
                 <div style="flex:1">
-                    <label style="font-size: 10px;">TIEMPO BASE</label>
+                    <label>TIEMPO BASE</label>
                     <input type="number" id="limit-min" value="45" oninput="updateAll()">
+                    <div class="color-group" style="margin-top:8px;">
+                        <input type="color" id="bg-clock" value="#1a1a1a" oninput="updateAll()">
+                        <input type="color" id="txt-clock" value="#FFFFFF" oninput="updateAll()">
+                    </div>
                 </div>
                 
-                <div style="flex:1; text-align: center;">
-                    <label style="font-size: 10px;">PERIODO</label>
+                <div style="flex:1">
+                    <label>PERIODO</label>
                     <div class="color-group">
                         <input type="color" id="bg-p" value="#FF0000" oninput="updateAll()">
                         <input type="color" id="txt-p" value="#FFFFFF" oninput="updateAll()">
                     </div>
                     <div class="switch-container">
-                        <span style="font-size:12px;">1T</span>
+                        <span style="font-size:11px; font-weight:bold;">1T</span>
                         <label class="switch">
-                            <input type="checkbox" id="period-toggle" onchange="updateAll()">
+                            <input type="checkbox" id="period-toggle" onchange="handlePeriodChange()">
                             <span class="slider"></span>
                         </label>
-                        <span style="font-size:12px;">2T</span>
+                        <span style="font-size:11px; font-weight:bold;">2T</span>
                     </div>
                 </div>
 
                 <div style="flex:1">
-                    <label style="font-size: 10px;">EXTRA (+MIN)</label>
+                    <label>EXTRA (+MIN)</label>
                     <input type="number" id="extra-min" value="0" oninput="updateAll()">
+                    <div class="color-group" style="margin-top:8px;">
+                        <input type="color" id="bg-extra" value="#FF0000" oninput="updateAll()">
+                        <input type="color" id="txt-extra" value="#000000" oninput="updateAll()">
+                    </div>
                 </div>
             </div>
 
-            <div class="switch-container" style="border-top: 1px solid #30363d; padding-top: 10px;">
-                <span style="font-size:12px; color:#8b949e;">INVERTIR LADOS</span>
-                <label class="switch">
-                    <input type="checkbox" id="invert-toggle" onchange="updateAll()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <button class="btn btn-blue" onclick="sendClock('start')">INICIAR / REANUDAR</button>
-            <div class="grid" style="display:flex; gap:10px;">
+            <button class="btn btn-blue" style="margin-top:15px;" onclick="sendClock('start')">INICIAR / REANUDAR</button>
+            <div style="display:flex; gap:10px;">
                 <button class="btn" style="background:#30363d; color:white; flex:1;" onclick="sendClock('stop')">PAUSAR</button>
                 <button class="btn" style="background:#da3633; color:white; flex:1;" onclick="resetFull()">RESET TOTAL</button>
             </div>
@@ -146,6 +145,12 @@
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         let state = { scoreL: 0, scoreV: 0 };
 
+        function handlePeriodChange() {
+            // Al cambiar el switch, reseteamos el reloj automáticamente
+            sendClock('reset');
+            updateAll();
+        }
+
         function changeScore(team, val) {
             if(team === 'l') state.scoreL = Math.max(0, state.scoreL + val);
             if(team === 'v') state.scoreV = Math.max(0, state.scoreV + val);
@@ -154,9 +159,8 @@
         }
 
         function updateAll() {
-            const inverted = document.getElementById('invert-toggle').checked;
+            const is2T = document.getElementById('period-toggle').checked;
             
-            // Datos base
             let data = {
                 nameL: document.getElementById('name-l').value,
                 nameV: document.getElementById('name-v').value,
@@ -168,15 +172,21 @@
                 txtL: document.getElementById('txt-l').value,
                 bgV: document.getElementById('bg-v').value,
                 txtV: document.getElementById('txt-v').value,
+                // Nuevos Colores
+                bgClock: document.getElementById('bg-clock').value,
+                txtClock: document.getElementById('txt-clock').value,
+                bgExtra: document.getElementById('bg-extra').value,
+                txtExtra: document.getElementById('txt-extra').value,
+                // Tiempo y Periodo
                 limit: document.getElementById('limit-min').value,
                 extra: document.getElementById('extra-min').value,
-                periodText: document.getElementById('period-toggle').checked ? "2T" : "1T",
+                periodText: is2T ? "2T" : "1T",
                 periodBg: document.getElementById('bg-p').value,
                 periodTxt: document.getElementById('txt-p').value
             };
 
-            // LÓGICA DE INVERSIÓN
-            if (inverted) {
+            // LÓGICA DE INVERSIÓN AUTOMÁTICA SI ES 2T
+            if (is2T) {
                 const temp = { ...data };
                 data.nameL = temp.nameV; data.nameV = temp.nameL;
                 data.scoreL = temp.scoreV; data.scoreV = temp.scoreL;

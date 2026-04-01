@@ -5,7 +5,6 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@700&family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* ================= DEPORTES CSS (INTACTO) ================= */
         body { margin: 0; padding: 0; overflow: hidden; background: transparent; font-family: 'Roboto Condensed', sans-serif; }
         
         #scoreboard {
@@ -25,79 +24,50 @@
         #group-l { flex-direction: row; }
         #group-v { flex-direction: row-reverse; }
 
-        /* ================= ZÓCALOS CSS (AÑADIDO NATIVO) ================= */
         .overlay-root { position: fixed; inset: 0; pointer-events: none; overflow: hidden; font-family: 'Inter', Arial, sans-serif;}
-        
         .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; transform-origin: bottom left; transition: 0.45s cubic-bezier(0.16,1,0.3,1); }
         .zocalo-hidden { opacity: 0; transform: translateY(90px) scale(0.96); }
         .zocalo-visible { opacity: 1; transform: translateY(0) scale(1); }
         
         .z-base { display: inline-flex; flex-direction: column; gap: 6px; max-width: 980px; }
         .z-title { display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 18px; backdrop-filter: blur(16px); box-shadow: 0 16px 40px rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.16); position: relative; overflow: hidden; }
-        .z-title h1 { margin: 0; line-height: 0.95; font-weight: 900; letter-spacing: -1.4px; text-transform: uppercase; position: relative; z-index: 1; }
-        .z-sub { display: inline-flex; align-items: center; width: fit-content; padding: 7px 16px; border-radius: 999px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; box-shadow: 0 10px 25px rgba(0,0,0,0.22); position: relative; z-index: 1; }
+        .z-title h1 { margin: 0; line-height: 0.95; font-weight: 900; letter-spacing: -1.4px; text-transform: uppercase; z-index: 1; }
+        .z-sub { display: inline-flex; align-items: center; width: fit-content; padding: 7px 16px; border-radius: 999px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; position: relative; z-index: 1; }
         .z-accent-bar { width: 12px; border-radius: 999px; align-self: stretch; flex: 0 0 auto; position: relative; z-index: 1; }
 
-        /* Estilos Zócalos */
-        .z-modern .z-title { background: linear-gradient(135deg, rgba(15,23,42,0.97), rgba(30,41,59,0.95)); padding-left: 16px; }
+        .z-modern .z-title { background: linear-gradient(135deg, rgba(15,23,42,0.97), rgba(30,41,59,0.95)); }
         .z-modern h1 { font-size: 50px; color: #fff; }
-        .z-modern .z-sub { margin-left: 18px; margin-top: -2px; color: white; }
+        .z-modern .z-sub { margin-left: 18px; color: white; }
         
         .z-glass .z-title { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); }
-        .z-glass h1 { font-size: 50px; color: white; text-shadow: 0 2px 16px rgba(0,0,0,0.52); }
-        .z-glass .z-sub { background: rgba(15,23,42,0.72); color: #f8fafc; border: 1px solid rgba(255,255,255,0.16); margin-left: 16px; }
+        .z-glass h1 { font-size: 50px; color: white; }
+        .z-glass .z-sub { background: rgba(15,23,42,0.72); color: #f8fafc; margin-left: 16px; }
 
         .z-neon .z-title { background: rgba(2,6,23,0.96); border: 1px solid rgba(255,255,255,0.10); }
         .z-neon h1 { font-size: 50px; color: white; }
-        .z-neon .z-sub { background: transparent; color: white; border: 1px solid currentColor; margin-left: 16px; box-shadow: 0 0 18px rgba(255,255,255,0.08); }
+        .z-neon .z-sub { background: transparent; color: white; border: 1px solid currentColor; margin-left: 16px; }
 
-        .z-box .z-title { background: white; border-radius: 16px 16px 6px 6px; padding: 12px 18px; border: 0; }
+        .z-box .z-title { background: white; border-radius: 16px 16px 6px 6px; }
         .z-box h1 { font-size: 50px; color: #0f172a; }
         .z-box .z-sub { margin-left: 0; border-radius: 0 0 16px 16px; color: white; background: #0f172a; border-top: 4px solid; }
-        .z-box .z-accent-bar { display:none; }
 
-        .z-ribbon .z-title { border-radius: 10px 22px 10px 22px; background: linear-gradient(135deg, rgba(15,23,42,0.96), rgba(30,41,59,0.96)); clip-path: polygon(0 0, 96% 0, 100% 50%, 96% 100%, 0 100%, 3% 50%); padding-left: 18px; }
+        .z-ribbon .z-title { border-radius: 10px 22px 10px 22px; background: rgba(15,23,42,0.96); clip-path: polygon(0 0, 96% 0, 100% 50%, 96% 100%, 0 100%, 3% 50%); }
         .z-ribbon h1 { font-size: 50px; color: white; }
-        .z-ribbon .z-sub { margin-left: 14px; color: white; border-radius: 10px; }
-        .z-ribbon .z-accent-bar { border-radius: 6px; }
 
-        .z-clean .z-title { background: rgba(255,255,255,0.96); border: 1px solid rgba(15,23,42,0.06); border-radius: 16px; }
-        .z-clean h1 { font-size: 50px; color: #0f172a; }
-        .z-clean .z-sub { background: #0f172a; color: white; margin-left: 0; border-radius: 12px; }
-        .z-clean .z-accent-bar { width: 8px; }
+        .z-underline .z-title { background: transparent; border: none; box-shadow: none; }
+        .z-underline h1 { font-size: 50px; color: white; padding-bottom: 10px; }
 
-        .z-premium .z-title { background: linear-gradient(135deg, rgba(7,10,18,0.98), rgba(15,23,42,0.96)); border-radius: 22px; }
-        .z-premium h1 { font-size: 50px; color: #fff; }
-        .z-premium .z-sub { color: white; margin-left: 14px; border-radius: 999px; }
-
-        .z-capsule .z-title { background: rgba(15,23,42,0.92); border-radius: 999px; padding: 12px 18px 12px 14px; }
-        .z-capsule h1 { font-size: 50px; color: white; }
-        .z-capsule .z-sub { margin-left: 16px; border-radius: 999px; background: #fff; color: #0f172a; }
-        .z-capsule .z-accent-bar { width: 10px; border-radius: 999px; }
-
-        .z-underline .z-title { background: transparent; border: none; box-shadow: none; padding: 0; }
-        .z-underline .z-title::after { display:none; }
-        .z-underline h1 { font-size: 50px; color: white; padding-bottom: 10px; display: inline-block; text-shadow: 0 8px 24px rgba(0,0,0,0.25); }
-        .z-underline .z-sub { margin-left: 0; margin-top: 8px; background: rgba(15,23,42,0.94); color: white; border-radius: 12px; }
-        .z-underline .z-accent-bar { display:none; }
-
-        /* Extras Zócalo */
-        .social-pill { position: absolute; bottom: 140px; right: 50px; background: white; color: black; padding: 10px 28px; border-radius: 999px; display: none; align-items: center; gap: 14px; box-shadow: 0 14px 30px rgba(0,0,0,0.34); border: 4px solid #0f172a; }
-        .social-icon { font-weight: 900; text-transform: uppercase; font-size: 14px; padding: 6px 10px; border-radius: 6px; color: white; }
+        .social-pill { position: absolute; bottom: 140px; right: 50px; background: white; color: black; padding: 10px 28px; border-radius: 999px; display: none; align-items: center; gap: 14px; box-shadow: 0 14px 30px rgba(0,0,0,0.34); }
         .social-handle { font-size: 24px; font-weight: 900; }
 
         .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; align-items: center; }
-        .ticker-label { background: #dc2626; height: 100%; padding: 0 28px; display: flex; align-items: center; font-weight: 900; font-style: italic; color: white; z-index: 2; }
-        .ticker-content { flex: 1; overflow: hidden; white-space: nowrap; position: relative; height: 100%; display: flex; align-items: center; }
-        .ticker-move { display: inline-block; animation: ticker 20s linear infinite; font-size: 20px; font-weight: 800; text-transform: uppercase; color: white; }
+        .ticker-label { background: #dc2626; height: 100%; padding: 0 28px; display: flex; align-items: center; font-weight: 900; color: white; z-index: 2; }
+        .ticker-move { display: inline-block; animation: ticker 20s linear infinite; font-size: 20px; font-weight: 800; color: white; white-space: nowrap; }
         @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        .top-left-bits { position: absolute; top: 30px; left: 30px; display: flex; align-items: stretch; z-index: 50; }
+        .top-left-bits { position: absolute; top: 30px; left: 30px; display: flex; z-index: 50; }
         .bug-live { background: #dc2626; color: white; padding: 6px 14px; font-weight: 900; font-size: 18px; display: none; align-items: center; gap: 10px; border-radius: 8px 0 0 8px; }
-        .bug-dot { width: 10px; height: 10px; background: white; border-radius: 50%; }
-        .clock-chip { background: rgba(15,23,42,0.94); color: white; padding: 6px 14px; font-family: monospace; font-size: 18px; display: none; align-items: center; border-radius: 0 8px 8px 0; border-left: 1px solid rgba(255,255,255,0.14); }
-        .global-logo-box { position: absolute; z-index: 100; max-width: 240px; max-height: 240px; display: none; }
-        .logo-placeholder { background: white; color: black; padding: 10px 12px; font-weight: 900; border-radius: 10px; box-shadow: 0 12px 22px rgba(0,0,0,0.22); }
+        .clock-chip { background: rgba(15,23,42,0.94); color: white; padding: 6px 14px; font-family: monospace; font-size: 18px; display: none; align-items: center; border-radius: 0 8px 8px 0; }
     </style>
 </head>
 <body>
@@ -107,45 +77,23 @@
             <div class="name-box" id="name-l">LOCAL</div>
             <div class="score-box" id="score-l">0</div>
         </div>
-        
         <div class="period-box" id="period-ui">1T</div>
-
         <div class="team-container" id="group-v">
             <div class="logo-box" id="logo-box-v"><img id="logo-v" src=""></div>
             <div class="name-box" id="name-v">VISITA</div>
             <div class="score-box" id="score-v">0</div>
         </div>
-        
-        <div class="timer-box" id="timer-ui">
-            <span id="clock">00:00</span>
-            <div id="extra-time-label">+0</div>
-        </div>
+        <div class="timer-box" id="timer-ui"><span id="clock">00:00</span><div id="extra-time-label">+0</div></div>
     </div>
 
     <div class="overlay-root">
         <div id="zocalo-wrap" class="zocalo-wrap zocalo-hidden">
-            <div class="z-base" id="z-base-content">
-                </div>
+            <div class="z-base" id="z-base-content"></div>
         </div>
-
-        <div class="social-pill" id="social-pill">
-            <div class="social-icon" id="social-icon">IG</div>
-            <div class="social-handle" id="social-handle">@user</div>
-        </div>
-
-        <div class="ticker-bar" id="ticker-bar">
-            <div class="ticker-label">NOTICIAS</div>
-            <div class="ticker-content">
-                <div class="ticker-move" id="ticker-move"></div>
-            </div>
-        </div>
-
-        <div class="global-logo-box" id="global-logo-box"></div>
-
+        <div class="social-pill" id="social-pill"><div class="social-handle" id="social-handle">@user</div></div>
+        <div class="ticker-bar" id="ticker-bar"><div class="ticker-label">NOTICIAS</div><div class="ticker-move" id="ticker-move"></div></div>
         <div class="top-left-bits">
-            <div class="bug-live" id="bug-live">
-                <div class="bug-dot"></div><span id="bug-text">VIVO</span>
-            </div>
+            <div class="bug-live" id="bug-live">VIVO</div>
             <div class="clock-chip" id="bug-clock">00:00:00</div>
         </div>
     </div>
@@ -153,7 +101,7 @@
     <script>
         const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-        let seconds = 0, timerInterval = null, limitMin = 45, extraMin = 0;
+        let seconds = 0, timerInterval = null, limitMin = 45;
 
         client.on('connect', () => client.subscribe(ID_UNICO));
         client.on('message', (topic, message) => {
@@ -168,53 +116,23 @@
                 if (data.command === 'stop') clearInterval(timerInterval);
                 if (data.command === 'reset') { clearInterval(timerInterval); seconds = 0; updateClock(); }
             }
-            if (type === 'zocalo_update') {
-                applyZocaloUpdate(data);
-            }
+            if (type === 'zocalo_update') applyZocaloUpdate(data);
         });
 
-        // --- FUNCIONES DEPORTES (INTACTAS) ---
         function applyUpdate(d) {
             document.getElementById('name-l').innerText = d.nameL;
             document.getElementById('score-l').innerText = d.scoreL;
             document.getElementById('name-l').style.backgroundColor = d.bgL;
-            document.getElementById('name-l').style.color = d.txtL;
-            document.getElementById('score-l').style.backgroundColor = d.bgL;
-            document.getElementById('score-l').style.color = d.txtL;
-            updateLogo('l', d.logoL);
-
             document.getElementById('name-v').innerText = d.nameV;
             document.getElementById('score-v').innerText = d.scoreV;
             document.getElementById('name-v').style.backgroundColor = d.bgV;
-            document.getElementById('name-v').style.color = d.txtV;
-            document.getElementById('score-v').style.backgroundColor = d.bgV;
-            document.getElementById('score-v').style.color = d.txtV;
-            updateLogo('v', d.logoV);
-
-            const p = document.getElementById('period-ui');
-            p.innerText = d.periodText; p.style.backgroundColor = d.periodBg; p.style.color = d.periodTxt;
-
-            const tBox = document.getElementById('timer-ui');
-            tBox.style.backgroundColor = d.bgClock; tBox.style.color = d.txtClock;
-
-            limitMin = parseInt(d.limit); extraMin = parseInt(d.extra);
-            const ex = document.getElementById('extra-time-label');
-            ex.innerText = `+${d.extra}`; ex.style.display = d.extra > 0 ? 'block' : 'none';
-            ex.style.backgroundColor = d.bgExtra; ex.style.color = d.txtExtra;
-        }
-
-        function updateLogo(team, url) {
-            const box = document.getElementById(`logo-box-${team}`);
-            const img = document.getElementById(`logo-${team}`);
-            if(url && url.trim() !== "") { box.style.display = 'flex'; img.src = url; }
-            else { box.style.display = 'none'; }
+            document.getElementById('period-ui').innerText = d.periodText;
+            limitMin = parseInt(d.limit);
         }
 
         function startClock() {
             clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (seconds < (limitMin + extraMin) * 60) { seconds++; updateClock(); }
-            }, 1000);
+            timerInterval = setInterval(() => { seconds++; updateClock(); }, 1000);
         }
 
         function updateClock() {
@@ -223,67 +141,20 @@
             document.getElementById('clock').innerText = `${m}:${s}`;
         }
 
-        // --- FUNCIONES ZÓCALOS (ADAPTACIÓN REACT A NATIVO) ---
         function applyZocaloUpdate(d) {
-            // Lower Third
             const wrap = document.getElementById('zocalo-wrap');
             wrap.className = `zocalo-wrap ${d.lt.visible ? 'zocalo-visible' : 'zocalo-hidden'} z-${d.lt.style}`;
-            wrap.style.transform = `scale(${d.lt.scale / 100})`;
+            document.getElementById('z-base-content').innerHTML = `
+                <div class="z-title"><div class="z-accent-bar" style="background:${d.lt.color}"></div><h1>${d.lt.title}</h1></div>
+                <div class="z-sub" style="background:${d.lt.color}">${d.lt.subtitle}</div>`;
             
-            let html = '';
-            if(d.lt.style === 'modern' || d.lt.style === 'ribbon') {
-                html = `<div class="z-title"><div class="z-accent-bar" style="background: ${d.lt.color}"></div><h1>${d.lt.title}</h1></div><div class="z-sub" style="background: ${d.lt.color}">${d.lt.subtitle}</div>`;
-            } else if(d.lt.style === 'glass') {
-                html = `<div class="z-title"><div class="z-accent-bar" style="background: ${d.lt.color}"></div><h1>${d.lt.title}</h1></div><div class="z-sub" style="background: rgba(15,23,42,0.72); border: 1px solid rgba(255,255,255,0.16);">${d.lt.subtitle}</div>`;
-            } else if(d.lt.style === 'neon') {
-                html = `<div class="z-title" style="color: ${d.lt.color}; box-shadow: 0 0 20px ${d.lt.color}"><div class="z-accent-bar" style="background: ${d.lt.color}; box-shadow: 0 0 18px ${d.lt.color}"></div><h1 style="text-shadow: 0 0 12px ${d.lt.color}">${d.lt.title}</h1></div><div class="z-sub" style="color: ${d.lt.color}; border-color: ${d.lt.color}">${d.lt.subtitle}</div>`;
-            } else if(d.lt.style === 'box') {
-                html = `<div class="z-title" style="border-bottom-color: ${d.lt.color}"><div class="z-accent-bar" style="background: ${d.lt.color}"></div><h1>${d.lt.title}</h1></div><div class="z-sub" style="border-top-color: ${d.lt.color}">${d.lt.subtitle}</div>`;
-            } else if(d.lt.style === 'clean' || d.lt.style === 'premium' || d.lt.style === 'capsule') {
-                html = `<div class="z-title"><div class="z-accent-bar" style="background: ${d.lt.color}"></div><h1>${d.lt.title}</h1></div><div class="z-sub">${d.lt.subtitle}</div>`;
-            } else if(d.lt.style === 'underline') {
-                html = `<div class="z-title"><h1 style="border-bottom: 8px solid ${d.lt.color}">${d.lt.title}</h1></div><div class="z-sub">${d.lt.subtitle}</div>`;
-            }
-            document.getElementById('z-base-content').innerHTML = html;
-
-            // Redes Sociales
-            const socialPill = document.getElementById('social-pill');
-            if(d.social.visible) {
-                socialPill.style.display = 'flex';
-                const colors = { instagram: '#ec4899', twitter: '#111827', youtube: '#ef4444', facebook: '#2563eb' };
-                document.getElementById('social-icon').style.background = colors[d.social.net];
-                document.getElementById('social-icon').innerText = d.social.net;
-                document.getElementById('social-handle').innerText = d.social.handle;
-            } else { socialPill.style.display = 'none'; }
-
-            // Ticker
-            const ticker = document.getElementById('ticker-bar');
-            if(d.ticker.visible) {
-                ticker.style.display = 'flex';
-                const move = document.getElementById('ticker-move');
-                move.style.animationDuration = Math.max(5, 60 - Number(d.ticker.speed)) + 's';
-                move.innerHTML = `${d.ticker.text} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `.repeat(5);
-            } else { ticker.style.display = 'none'; }
-
-            // Logo Global
-            const logoBox = document.getElementById('global-logo-box');
-            if(d.logo.visible) {
-                logoBox.style.display = 'block';
-                logoBox.style.top = d.logo.pos.includes('top') ? '30px' : 'auto';
-                logoBox.style.bottom = d.logo.pos.includes('bottom') ? '100px' : 'auto';
-                logoBox.style.left = d.logo.pos.includes('left') ? '30px' : 'auto';
-                logoBox.style.right = d.logo.pos.includes('right') ? '30px' : 'auto';
-                if(d.logo.url) logoBox.innerHTML = `<img src="${d.logo.url}" alt="logo" style="height: ${d.logo.size}px; max-width: 100%; object-fit: contain;" />`;
-                else logoBox.innerHTML = `<div class="logo-placeholder">LOGO</div>`;
-            } else { logoBox.style.display = 'none'; }
-
-            // Bug (Vivo/Reloj)
+            document.getElementById('social-pill').style.display = d.social.visible ? 'flex' : 'none';
+            document.getElementById('social-handle').innerText = d.social.handle;
+            document.getElementById('ticker-bar').style.display = d.ticker.visible ? 'flex' : 'none';
+            document.getElementById('ticker-move').innerText = d.ticker.text;
             document.getElementById('bug-live').style.display = d.bug.showLive ? 'flex' : 'none';
-            document.getElementById('bug-text').innerText = d.bug.text;
             document.getElementById('bug-clock').style.display = d.bug.showClock ? 'flex' : 'none';
         }
-
-        // Reloj Bug
         setInterval(() => { document.getElementById('bug-clock').innerText = new Date().toLocaleTimeString(); }, 1000);
     </script>
 </body>

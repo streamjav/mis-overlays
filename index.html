@@ -13,16 +13,15 @@
             transform: translateY(-120px); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
         #scoreboard.active { transform: translateY(0); }
-        .team-container { display: flex; align-items: stretch; flex-grow: 1; }
-        .logo-box { background: white; width: 55px; min-width: 55px; height: 55px; display: none; justify-content: center; align-items: center; }
+        .team-container { display: flex; align-items: stretch; flex-grow: 1; min-width: 180px; }
+        .logo-box { background: white; width: 55px; min-width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; }
         .logo-box img { width: 85%; height: 85%; object-fit: contain; }
-        .name-box { font-size: 26px; text-transform: uppercase; min-width: 130px; display: flex; align-items: center; padding: 0 15px; flex-grow: 1; letter-spacing: 0.5px; }
-        .score-box { font-size: 38px; font-weight: 900; width: 55px; display: flex; align-items: center; justify-content: center; }
-        .period-box { width: 42px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; z-index: 10; }
+        .name-box { font-size: 26px; text-transform: uppercase; display: flex; align-items: center; padding: 0 15px; flex-grow: 1; letter-spacing: 0.5px; color: white; }
+        .score-box { font-size: 38px; font-weight: 900; width: 55px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); color: white; }
+        .period-box { width: 42px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 22px; z-index: 10; background: #dc2626; color: white; }
         .timer-box { width: 105px; min-width: 105px; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 40px; position: relative; }
-        #extra-time-label { position: absolute; bottom: -28px; right: 0; font-size: 18px; padding: 2px 10px; font-weight: bold; display: none; }
-        #group-l { flex-direction: row; }
-        #group-v { flex-direction: row-reverse; }
+        
+        #extra-time-label { position: absolute; bottom: -30px; right: 0; font-size: 20px; padding: 2px 12px; font-weight: bold; display: none; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
         .overlay-root { position: fixed; inset: 0; pointer-events: none; overflow: hidden; font-family: 'Inter', Arial, sans-serif;}
         .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; transform-origin: bottom left; transition: 0.45s cubic-bezier(0.16,1,0.3,1); }
@@ -35,35 +34,22 @@
         .z-sub { display: inline-flex; align-items: center; width: fit-content; padding: 7px 16px; border-radius: 999px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; position: relative; z-index: 1; }
         .z-accent-bar { width: 12px; border-radius: 999px; align-self: stretch; flex: 0 0 auto; position: relative; z-index: 1; }
 
+        /* Estilos de Zócalos */
         .z-modern .z-title { background: linear-gradient(135deg, rgba(15,23,42,0.97), rgba(30,41,59,0.95)); }
         .z-modern h1 { font-size: 50px; color: #fff; }
         .z-modern .z-sub { margin-left: 18px; color: white; }
-        
         .z-glass .z-title { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); }
         .z-glass h1 { font-size: 50px; color: white; }
         .z-glass .z-sub { background: rgba(15,23,42,0.72); color: #f8fafc; margin-left: 16px; }
-
         .z-neon .z-title { background: rgba(2,6,23,0.96); border: 1px solid rgba(255,255,255,0.10); }
         .z-neon h1 { font-size: 50px; color: white; }
         .z-neon .z-sub { background: transparent; color: white; border: 1px solid currentColor; margin-left: 16px; }
 
-        .z-box .z-title { background: white; border-radius: 16px 16px 6px 6px; }
-        .z-box h1 { font-size: 50px; color: #0f172a; }
-        .z-box .z-sub { margin-left: 0; border-radius: 0 0 16px 16px; color: white; background: #0f172a; border-top: 4px solid; }
-
-        .z-ribbon .z-title { border-radius: 10px 22px 10px 22px; background: rgba(15,23,42,0.96); clip-path: polygon(0 0, 96% 0, 100% 50%, 96% 100%, 0 100%, 3% 50%); }
-        .z-ribbon h1 { font-size: 50px; color: white; }
-
-        .z-underline .z-title { background: transparent; border: none; box-shadow: none; }
-        .z-underline h1 { font-size: 50px; color: white; padding-bottom: 10px; }
-
         .social-pill { position: absolute; bottom: 140px; right: 50px; background: white; color: black; padding: 10px 28px; border-radius: 999px; display: none; align-items: center; gap: 14px; box-shadow: 0 14px 30px rgba(0,0,0,0.34); }
-        .social-handle { font-size: 24px; font-weight: 900; }
-
-        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; align-items: center; }
-        .ticker-label { background: #dc2626; height: 100%; padding: 0 28px; display: flex; align-items: center; font-weight: 900; color: white; z-index: 2; }
-        .ticker-move { display: inline-block; animation: ticker 20s linear infinite; font-size: 20px; font-weight: 800; color: white; white-space: nowrap; }
-        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; align-items: center; overflow: hidden; }
+        .ticker-label { background: #dc2626; height: 100%; padding: 0 28px; display: flex; align-items: center; font-weight: 900; color: white; z-index: 2; position: relative; }
+        .ticker-move { display: inline-block; animation: ticker 25s linear infinite; font-size: 20px; font-weight: 800; color: white; white-space: nowrap; padding-left: 100%; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
         .top-left-bits { position: absolute; top: 30px; left: 30px; display: flex; z-index: 50; }
         .bug-live { background: #dc2626; color: white; padding: 6px 14px; font-weight: 900; font-size: 18px; display: none; align-items: center; gap: 10px; border-radius: 8px 0 0 8px; }
@@ -78,12 +64,15 @@
             <div class="score-box" id="score-l">0</div>
         </div>
         <div class="period-box" id="period-ui">1T</div>
-        <div class="team-container" id="group-v">
+        <div class="team-container" id="group-v" style="flex-direction: row-reverse;">
             <div class="logo-box" id="logo-box-v"><img id="logo-v" src=""></div>
-            <div class="name-box" id="name-v">VISITA</div>
+            <div class="name-box" id="name-v" style="text-align: right; justify-content: flex-end;">VISITA</div>
             <div class="score-box" id="score-v">0</div>
         </div>
-        <div class="timer-box" id="timer-ui"><span id="clock">00:00</span><div id="extra-time-label">+0</div></div>
+        <div class="timer-box" id="timer-ui">
+            <span id="clock">00:00</span>
+            <div id="extra-time-label">+0</div>
+        </div>
     </div>
 
     <div class="overlay-root">
@@ -101,7 +90,7 @@
     <script>
         const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-        let seconds = 0, timerInterval = null, limitMin = 45;
+        let seconds = 0, timerInterval = null;
 
         client.on('connect', () => client.subscribe(ID_UNICO));
         client.on('message', (topic, message) => {
@@ -123,11 +112,33 @@
             document.getElementById('name-l').innerText = d.nameL;
             document.getElementById('score-l').innerText = d.scoreL;
             document.getElementById('name-l').style.backgroundColor = d.bgL;
+            document.getElementById('name-l').style.color = d.txtL;
+            if(d.logoL) { document.getElementById('logo-l').src = d.logoL; document.getElementById('logo-box-l').style.display = 'flex'; }
+            else document.getElementById('logo-box-l').style.display = 'none';
+
             document.getElementById('name-v').innerText = d.nameV;
             document.getElementById('score-v').innerText = d.scoreV;
             document.getElementById('name-v').style.backgroundColor = d.bgV;
+            document.getElementById('name-v').style.color = d.txtV;
+            if(d.logoV) { document.getElementById('logo-v').src = d.logoV; document.getElementById('logo-box-v').style.display = 'flex'; }
+            else document.getElementById('logo-box-v').style.display = 'none';
+
             document.getElementById('period-ui').innerText = d.periodText;
-            limitMin = parseInt(d.limit);
+            
+            // Colores de Reloj y Extra
+            const timerBox = document.getElementById('timer-ui');
+            timerBox.style.backgroundColor = d.bgClock;
+            timerBox.style.color = d.txtClock;
+
+            const extraLabel = document.getElementById('extra-time-label');
+            if(parseInt(d.extra) > 0) {
+                extraLabel.innerText = "+" + d.extra;
+                extraLabel.style.display = 'block';
+                extraLabel.style.backgroundColor = d.bgExtra;
+                extraLabel.style.color = d.txtExtra;
+            } else {
+                extraLabel.style.display = 'none';
+            }
         }
 
         function startClock() {
@@ -150,8 +161,15 @@
             
             document.getElementById('social-pill').style.display = d.social.visible ? 'flex' : 'none';
             document.getElementById('social-handle').innerText = d.social.handle;
-            document.getElementById('ticker-bar').style.display = d.ticker.visible ? 'flex' : 'none';
-            document.getElementById('ticker-move').innerText = d.ticker.text;
+            
+            const ticker = document.getElementById('ticker-bar');
+            if(d.ticker.visible) {
+                ticker.style.display = 'flex';
+                document.getElementById('ticker-move').innerText = (d.ticker.text + " • ").repeat(10);
+            } else {
+                ticker.style.display = 'none';
+            }
+            
             document.getElementById('bug-live').style.display = d.bug.showLive ? 'flex' : 'none';
             document.getElementById('bug-clock').style.display = d.bug.showClock ? 'flex' : 'none';
         }

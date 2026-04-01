@@ -2,116 +2,205 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+    <title>Control de Deportes PRO V2</title>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: transparent; font-family: 'Roboto Condensed', sans-serif; }
-        #scoreboard {
-            position: absolute; top: 40px; left: 50px; display: flex; align-items: stretch; height: 55px;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));
-            transform: translateY(-120px); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        #scoreboard.active { transform: translateY(0); }
-        .block { display: flex; align-items: center; padding: 0 15px; border-right: 1px solid rgba(255,255,255,0.1); }
-        .logo-box { background: white; width: 55px; min-width: 55px; height: 55px; display: none; justify-content: center; align-items: center; }
-        .logo-box img { width: 90%; height: 90%; object-fit: contain; }
-        .team-name { font-size: 24px; text-transform: uppercase; min-width: 120px; justify-content: center; flex-grow: 1; letter-spacing: 1px; }
-        .score-box { font-size: 36px; font-weight: 900; width: 60px; justify-content: center; }
-        .period-box { width: 45px; justify-content: center; font-weight: bold; font-size: 22px; }
+        :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --accent: #1f6feb; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 100px; }
         
-        /* Cronómetro Dinámico */
-        .timer-box { min-width: 130px; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 38px; position: relative; border-right: none; }
+        .tabs { display: flex; background: #010409; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; color: #8b949e; border-bottom: 2px solid transparent; font-size: 12px; }
+        .tab.active { color: white; border-bottom: 2px solid var(--accent); background: var(--card); }
+
+        .container { padding: 15px; max-width: 500px; margin: auto; }
+        .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 15px; margin-bottom: 15px; }
+
+        .team-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+        .color-group { display: flex; gap: 5px; margin-bottom: 8px; justify-content: center; }
+        input[type="color"] { width: 30px; height: 30px; border: none; border-radius: 4px; background: none; cursor: pointer; padding: 0; }
         
-        /* Tiempo Extra Dinámico */
-        #extra-time-label { position: absolute; bottom: -28px; right: 0; font-size: 18px; padding: 2px 10px; font-weight: bold; display: none; border-radius: 0 0 4px 4px; }
+        input[type="text"], input[type="number"] { width: 100%; background: #010409; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; box-sizing: border-box; text-align: center; font-weight: bold; }
+        
+        .score-box { font-size: 28px; font-weight: bold; color: var(--accent); border: 1px solid var(--accent); padding: 5px 15px; border-radius: 8px; min-width: 70px; text-align: center; }
+
+        .btn { border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; margin-top: 8px; }
+        .btn-gol { background: #238636; color: white; }
+        .btn-minus { background: #da3633; color: white; }
+        .btn-blue { background: var(--accent); color: white; }
+
+        .switch-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #238636; }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        .action-bar { position: fixed; bottom: 0; width: 100%; display: flex; gap: 10px; padding: 15px; background: #0d1117; box-sizing: border-box; border-top: 1px solid var(--border); }
+        label { font-size: 10px; color: #8b949e; font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; }
     </style>
 </head>
 <body>
-    <div id="scoreboard">
-        <div class="logo-box" id="logo-box-l"><img id="logo-l" src=""></div>
-        <div class="block team-name" id="name-l">LOCAL</div>
-        <div class="block score-box" id="score-l">0</div>
-        
-        <div class="block period-box" id="period-ui">1T</div>
 
-        <div class="block score-box" id="score-v">0</div>
-        <div class="block team-name" id="name-v">VISITA</div>
-        <div class="logo-box" id="logo-box-v"><img id="logo-v" src=""></div>
-        
-        <div class="block timer-box" id="timer-ui">
-            <span id="clock">00:00</span>
-            <div id="extra-time-label">+0</div>
+    <div class="tabs">
+        <div class="tab active">DEPORTES</div>
+        <div class="tab">ZÓCALO</div>
+        <div class="tab">WEBRTC</div>
+        <div class="tab">PLAYLIST</div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="team-row">
+                <div>
+                    <div class="color-group">
+                        <input type="color" id="bg-l" value="#0000FF" oninput="updateAll()">
+                        <input type="color" id="txt-l" value="#FFFFFF" oninput="updateAll()">
+                    </div>
+                    <label>LOCAL</label>
+                    <input type="text" id="name-l" value="ALIANZA" oninput="updateAll()">
+                    <input type="text" id="logo-l" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
+                </div>
+
+                <div class="score-box" id="display-score">0 - 0</div>
+
+                <div>
+                    <div class="color-group">
+                        <input type="color" id="bg-v" value="#FFFF00" oninput="updateAll()">
+                        <input type="color" id="txt-v" value="#000000" oninput="updateAll()">
+                    </div>
+                    <label>VISITA</label>
+                    <input type="text" id="name-v" value="UNIVERSITARIO" oninput="updateAll()">
+                    <input type="text" id="logo-v" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
+                </div>
+            </div>
+
+            <div class="team-row" style="margin-top:10px;">
+                <div>
+                    <button class="btn btn-gol" onclick="changeScore('l', 1)">+ GOL</button>
+                    <button class="btn btn-minus" onclick="changeScore('l', -1)">-1</button>
+                </div>
+                <div></div>
+                <div>
+                    <button class="btn btn-gol" onclick="changeScore('v', 1)">+ GOL</button>
+                    <button class="btn btn-minus" onclick="changeScore('v', -1)">-1</button>
+                </div>
+            </div>
         </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; text-align: center;">
+                
+                <div style="flex:1">
+                    <label>TIEMPO BASE</label>
+                    <input type="number" id="limit-min" value="45" oninput="updateAll()">
+                    <div class="color-group" style="margin-top:8px;">
+                        <input type="color" id="bg-clock" value="#1a1a1a" oninput="updateAll()">
+                        <input type="color" id="txt-clock" value="#FFFFFF" oninput="updateAll()">
+                    </div>
+                </div>
+                
+                <div style="flex:1">
+                    <label>PERIODO</label>
+                    <div class="color-group">
+                        <input type="color" id="bg-p" value="#FF0000" oninput="updateAll()">
+                        <input type="color" id="txt-p" value="#FFFFFF" oninput="updateAll()">
+                    </div>
+                    <div class="switch-container">
+                        <span style="font-size:11px; font-weight:bold;">1T</span>
+                        <label class="switch">
+                            <input type="checkbox" id="period-toggle" onchange="handlePeriodChange()">
+                            <span class="slider"></span>
+                        </label>
+                        <span style="font-size:11px; font-weight:bold;">2T</span>
+                    </div>
+                </div>
+
+                <div style="flex:1">
+                    <label>EXTRA (+MIN)</label>
+                    <input type="number" id="extra-min" value="0" oninput="updateAll()">
+                    <div class="color-group" style="margin-top:8px;">
+                        <input type="color" id="bg-extra" value="#FF0000" oninput="updateAll()">
+                        <input type="color" id="txt-extra" value="#000000" oninput="updateAll()">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-blue" style="margin-top:15px;" onclick="sendClock('start')">INICIAR / REANUDAR</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" style="background:#30363d; color:white; flex:1;" onclick="sendClock('stop')">PAUSAR</button>
+                <button class="btn" style="background:#da3633; color:white; flex:1;" onclick="resetFull()">RESET TOTAL</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn btn-gol" style="flex:1" onclick="sendUI('show')">MOSTRAR</button>
+        <button class="btn btn-minus" style="flex:1" onclick="sendUI('hide')">OCULTAR</button>
     </div>
 
     <script>
         const ID_UNICO = "marcador_oscar_pro_2024";
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-        let seconds = 0, timerInterval = null, limitMin = 45, extraMin = 0;
+        let state = { scoreL: 0, scoreV: 0 };
 
-        client.on('connect', () => client.subscribe(ID_UNICO));
-        client.on('message', (topic, message) => {
-            const { type, data } = JSON.parse(message.toString());
-            if (type === 'update_info') applyUpdate(data);
-            if (type === 'control_ui') {
-                if(data.action === 'show') document.getElementById('scoreboard').classList.add('active');
-                else document.getElementById('scoreboard').classList.remove('active');
+        function handlePeriodChange() {
+            // Al cambiar el switch, reseteamos el reloj automáticamente
+            sendClock('reset');
+            updateAll();
+        }
+
+        function changeScore(team, val) {
+            if(team === 'l') state.scoreL = Math.max(0, state.scoreL + val);
+            if(team === 'v') state.scoreV = Math.max(0, state.scoreV + val);
+            document.getElementById('display-score').innerText = `${state.scoreL} - ${state.scoreV}`;
+            updateAll();
+        }
+
+        function updateAll() {
+            const is2T = document.getElementById('period-toggle').checked;
+            
+            let data = {
+                nameL: document.getElementById('name-l').value,
+                nameV: document.getElementById('name-v').value,
+                scoreL: state.scoreL,
+                scoreV: state.scoreV,
+                logoL: document.getElementById('logo-l').value,
+                logoV: document.getElementById('logo-v').value,
+                bgL: document.getElementById('bg-l').value,
+                txtL: document.getElementById('txt-l').value,
+                bgV: document.getElementById('bg-v').value,
+                txtV: document.getElementById('txt-v').value,
+                // Nuevos Colores
+                bgClock: document.getElementById('bg-clock').value,
+                txtClock: document.getElementById('txt-clock').value,
+                bgExtra: document.getElementById('bg-extra').value,
+                txtExtra: document.getElementById('txt-extra').value,
+                // Tiempo y Periodo
+                limit: document.getElementById('limit-min').value,
+                extra: document.getElementById('extra-min').value,
+                periodText: is2T ? "2T" : "1T",
+                periodBg: document.getElementById('bg-p').value,
+                periodTxt: document.getElementById('txt-p').value
+            };
+
+            // LÓGICA DE INVERSIÓN AUTOMÁTICA SI ES 2T
+            if (is2T) {
+                const temp = { ...data };
+                data.nameL = temp.nameV; data.nameV = temp.nameL;
+                data.scoreL = temp.scoreV; data.scoreV = temp.scoreL;
+                data.logoL = temp.logoV; data.logoV = temp.logoL;
+                data.bgL = temp.bgV; data.bgV = temp.bgL;
+                data.txtL = temp.txtV; data.txtV = temp.txtL;
             }
-            if (type === 'control_clock') {
-                if (data.command === 'start') startClock();
-                if (data.command === 'stop') clearInterval(timerInterval);
-                if (data.command === 'reset') { clearInterval(timerInterval); seconds = 0; updateClock(); }
-            }
-        });
 
-        function applyUpdate(d) {
-            // Equipos (Aplicando colores dinámicos)
-            const teams = ['l', 'v'];
-            teams.forEach(t => {
-                document.getElementById(`name-${t}`).innerText = d[`name${t.toUpperCase()}`];
-                document.getElementById(`score-${t}`).innerText = d[`score${t.toUpperCase()}`];
-                document.getElementById(`name-${t}`).style.backgroundColor = d[`bg${t.toUpperCase()}`];
-                document.getElementById(`name-${t}`).style.color = d[`txt${t.toUpperCase()}`];
-                document.getElementById(`score-${t}`).style.backgroundColor = d[`bg${t.toUpperCase()}`];
-                document.getElementById(`score-${t}`).style.color = d[`txt${t.toUpperCase()}`];
-                updateLogo(t, d[`logo${t.toUpperCase()}`]);
-            });
-
-            // Periodo
-            const p = document.getElementById('period-ui');
-            p.innerText = d.periodText; p.style.backgroundColor = d.periodBg; p.style.color = d.periodTxt;
-
-            // Cronómetro (Nuevos Colores)
-            const tBox = document.getElementById('timer-ui');
-            tBox.style.backgroundColor = d.bgClock; tBox.style.color = d.txtClock;
-
-            // Tiempo Extra (Nuevos Colores)
-            limitMin = parseInt(d.limit); extraMin = parseInt(d.extra);
-            const ex = document.getElementById('extra-time-label');
-            ex.innerText = `+${d.extra}`;
-            ex.style.display = d.extra > 0 ? 'block' : 'none';
-            ex.style.backgroundColor = d.bgExtra; ex.style.color = d.txtExtra;
+            client.publish(ID_UNICO, JSON.stringify({ type: 'update_info', data: data }));
         }
 
-        function updateLogo(team, url) {
-            const box = document.getElementById(`logo-box-${team}`);
-            const img = document.getElementById(`logo-${team}`);
-            if(url && url.trim() !== "") { box.style.display = 'flex'; img.src = url; }
-            else { box.style.display = 'none'; }
-        }
-
-        function startClock() {
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (seconds < (limitMin + extraMin) * 60) { seconds++; updateClock(); }
-            }, 1000);
-        }
-
-        function updateClock() {
-            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-            const s = (seconds % 60).toString().padStart(2, '0');
-            document.getElementById('clock').innerText = `${m}:${s}`;
-        }
+        function sendClock(cmd) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_clock', data: { command: cmd } })); updateAll(); }
+        function sendUI(action) { client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } })); }
+        function resetFull() { if(confirm("¿RESET TOTAL?")) { state.scoreL = 0; state.scoreV = 0; sendClock('reset'); updateAll(); } }
     </script>
 </body>
 </html>

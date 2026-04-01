@@ -75,7 +75,13 @@
                         <input type="text" id="logo-l" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
                     </div>
 
-                    <div class="score-box" id="display-score">0 - 0</div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                        <div class="score-box" id="display-score">0 - 0</div>
+                        <div class="color-group">
+                            <input type="color" id="bg-score" value="#161b22" oninput="updateAll(); document.getElementById('display-score').style.backgroundColor = this.value;">
+                            <input type="color" id="txt-score" value="#1f6feb" oninput="updateAll(); document.getElementById('display-score').style.color = this.value;">
+                        </div>
+                    </div>
 
                     <div id="ui-visita">
                         <div class="color-group">
@@ -263,6 +269,7 @@
                 bgV: document.getElementById('bg-v').value, txtV: document.getElementById('txt-v').value,
                 bgClock: document.getElementById('bg-clock').value, txtClock: document.getElementById('txt-clock').value,
                 bgExtra: document.getElementById('bg-extra').value, txtExtra: document.getElementById('txt-extra').value,
+                bgScore: document.getElementById('bg-score').value, txtScore: document.getElementById('txt-score').value,
                 limit: document.getElementById('limit-min').value, extra: document.getElementById('extra-min').value,
                 period: document.getElementById('period-toggle').checked,
                 zState: zState
@@ -283,6 +290,13 @@
                 document.getElementById('txt-clock').value = d.txtClock || "#FFFFFF";
                 document.getElementById('bg-extra').value = d.bgExtra || "#FF0000";
                 document.getElementById('txt-extra').value = d.txtExtra || "#FFFFFF";
+                
+                // Cargar datos del marcador
+                document.getElementById('bg-score').value = d.bgScore || "#161b22";
+                document.getElementById('txt-score').value = d.txtScore || "#1f6feb";
+                document.getElementById('display-score').style.backgroundColor = document.getElementById('bg-score').value;
+                document.getElementById('display-score').style.color = document.getElementById('txt-score').value;
+
                 document.getElementById('limit-min').value = d.limit;
                 document.getElementById('extra-min').value = d.extra;
                 document.getElementById('period-toggle').checked = d.period;
@@ -297,7 +311,6 @@
                     document.getElementById('z-soc-handle').value = zState.social.handle;
                     document.getElementById('z-soc-net').value = zState.social.net;
                     
-                    // Restaurar clases de botones
                     document.getElementById('btn-z-lt').classList.toggle('active', zState.lt.visible);
                     document.getElementById('btn-z-ticker').classList.toggle('active', zState.ticker.visible);
                     document.getElementById('btn-z-logo').classList.toggle('active', zState.logo.visible);
@@ -306,7 +319,7 @@
                     document.getElementById('btn-z-social').classList.toggle('active', zState.social.visible);
                 }
                 updateScoreDisplay();
-                handlePeriodChange(true); // true para no resetear reloj al cargar
+                handlePeriodChange(true);
             }
         }
 
@@ -354,7 +367,6 @@
 
         function updateAll() {
             const is2T = document.getElementById('period-toggle').checked;
-            // Si es 2T, invertimos lo que enviamos al index
             let data = {
                 nameL: is2T ? document.getElementById('name-v').value : document.getElementById('name-l').value,
                 nameV: is2T ? document.getElementById('name-l').value : document.getElementById('name-v').value,
@@ -372,7 +384,9 @@
                 bgClock: document.getElementById('bg-clock').value,
                 txtClock: document.getElementById('txt-clock').value,
                 bgExtra: document.getElementById('bg-extra').value,
-                txtExtra: document.getElementById('txt-extra').value
+                txtExtra: document.getElementById('txt-extra').value,
+                bgScore: document.getElementById('bg-score').value,
+                txtScore: document.getElementById('txt-score').value
             };
             client.publish(ID_UNICO, JSON.stringify({ type: 'update_info', data: data }));
             saveData();

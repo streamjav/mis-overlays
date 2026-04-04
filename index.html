@@ -94,6 +94,7 @@
         .soc-youtube .soc-box { background: #ff0000; }
         .soc-instagram .soc-box { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
         .soc-twitter .soc-box { background: #000000; }
+        .soc-tiktok .soc-box { background: #000000; text-shadow: 2px 0px 0px #00f2fe, -2px 0px 0px #fe0979; }
 
         .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; align-items: center; overflow: hidden; }
         .ticker-label { background: #dc2626; height: 100%; padding: 0 28px; display: flex; align-items: center; font-weight: 900; color: white; z-index: 2; position: relative; }
@@ -307,7 +308,11 @@
                 socWrap.style.display = 'block';
                 socWrap.style.transform = `scale(${(Number(social.size || 100) / 100)})`;
                 socContent.className = `soc-pill-main soc-${social.net || 'instagram'}`;
-                let netText = social.net === 'twitter' ? 'X / TWITTER' : String(social.net || 'instagram').toUpperCase();
+                let netText = social.net === 'twitter'
+                    ? 'X / TWITTER'
+                    : social.net === 'tiktok'
+                        ? 'TIKTOK'
+                        : String(social.net || 'instagram').toUpperCase();
                 socContent.innerHTML = `
                     <div class="soc-box">${netText}</div>
                     <div class="soc-handle"><b>${esc(social.handle)}</b></div>

@@ -66,6 +66,10 @@
         .preview-frame { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
         .preview-frame img { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
         .preview-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #8b949e; font-size: 12px; pointer-events: none; }
+        .preview-actions { display: flex; gap: 10px; padding: 12px 15px 15px; }
+        .btn-mini { border: 1px solid var(--border); background: #010409; color: white; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; flex: 1; }
+        .btn-mini:hover { border-color: var(--accent); }
+        .preview-note { padding: 0 15px 14px; font-size: 11px; color: #8b949e; line-height: 1.45; }
 
     </style>
 </head>
@@ -326,8 +330,11 @@
         const DEFAULT_PREVIEW_SNAPSHOT_BASE = 'http://192.168.1.75/snap/snap9.jpg';
         const PREVIEW_REFRESH_MS = 1500;
         const PREVIEW_STORAGE_KEY = ID_UNICO + '_preview_snapshot_base';
-        let PREVIEW_SNAPSHOT_BASE = localStorage.getItem(PREVIEW_STORAGE_KEY) || DEFAULT_PREVIEW_SNAPSHOT_BASE;
+        const PREVIEW_URL_PARAM = 'preview_ip';
+        let PREVIEW_SNAPSHOT_BASE = DEFAULT_PREVIEW_SNAPSHOT_BASE;
         let previewTimer = null;
+        let previewRetryTimer = null;
+        let previewRequestSeq = 0;
 
         function normalizePreviewBase(value) {
             let raw = String(value ?? '').trim();
@@ -339,18 +346,51 @@
             return `http://${raw}/snap/snap9.jpg`;
         }
 
-        function setPreviewIP() {
-            const current = PREVIEW_SNAPSHOT_BASE.replace(/\/snap\/snap9\.jpg(?:\?.*)?$/i, '').replace(/^https?:\/\//i, '');
-            const input = prompt('Ingresa la IP o URL base del encoder:', current);
-            if (input === null) return;
-            const base = normalizePreviewBase(input);
-            if (!base) {
-                alert('Debes ingresar una IP válida.');
-                return;
+        function getPreviewBaseFromUrl() {
+            try {
+                const url = new URL(window.location.href);
+                const raw = url.searchParams.get(PREVIEW_URL_PARAM);
+                return raw ? normalizePreviewBase(raw) : '';
+            } catch (e) {
+                return '';
             }
+        }
+
+        function syncPreviewBaseToUrl(rawValue) {
+            try {
+                const url = new URL(window.location.href);
+                const clean = String(rawValue ?? '').trim();
+                if (clean) url.searchParams.set(PREVIEW_URL_PARAM, clean);
+                else url.searchParams.delete(PREVIEW_URL_PARAM);
+                history.replaceState({}, '', url.toString());
+            } catch (e) {
+                /* No-op */
+            }
+        }
+
+        function setPreviewBase(rawValue, persistUrl = true, persistMainStorage = true) {
+            const base = normalizePreviewBase(rawValue);
+            if (!base) return false;
+
             PREVIEW_SNAPSHOT_BASE = base;
             localStorage.setItem(PREVIEW_STORAGE_KEY, PREVIEW_SNAPSHOT_BASE);
+
+            if (persistUrl) syncPreviewBaseToUrl(rawValue);
+            if (persistMainStorage) saveData();
             refreshPreview(true);
+            return true;
+        }
+
+        function setPreviewIP() {
+            const current = PREVIEW_SNAPSHOT_BASE
+                .replace(/\/snap\/snap9\.jpg(?:\?.*)?$/i, '')
+                .replace(/^https?:\/\//i, '');
+            const input = prompt('Ingresa la IP o URL base del encoder:', current);
+            if (input === null) return;
+
+            if (!setPreviewBase(input, true, true)) {
+                alert('Debes ingresar una IP válida.');
+            }
         }
 
         function refreshPreview(manual = false) {
@@ -359,10 +399,14 @@
             const fallback = document.getElementById('preview-fallback');
             if (!img || !status || !fallback) return;
 
+            clearTimeout(previewRetryTimer);
+
             if (manual) status.innerText = 'Actualizando preview...';
             else status.innerText = 'Actualización automática activa';
 
-            const ts = Date.now();
+            const cacheBust = `${Date.now()}-${++previewRequestSeq}`;
+            const snapshotUrl = `${PREVIEW_SNAPSHOT_BASE}?rnd=${cacheBust}`;
+
             img.onload = () => {
                 fallback.style.display = 'none';
                 status.innerText = 'Preview en vivo';
@@ -370,8 +414,9 @@
             img.onerror = () => {
                 fallback.style.display = 'flex';
                 status.innerText = 'No se pudo cargar la imagen';
+                previewRetryTimer = setTimeout(() => refreshPreview(false), 5000);
             };
-            img.src = `${PREVIEW_SNAPSHOT_BASE}?rnd=${ts}`;
+            img.src = snapshotUrl;
         }
 
         function startPreviewLoop() {
@@ -379,6 +424,31 @@
             if (previewTimer) clearInterval(previewTimer);
             previewTimer = setInterval(() => refreshPreview(false), PREVIEW_REFRESH_MS);
         }
+
+        function restorePreviewBaseFromStorage() {
+            const urlBase = getPreviewBaseFromUrl();
+            if (urlBase) {
+                PREVIEW_SNAPSHOT_BASE = urlBase;
+                localStorage.setItem(PREVIEW_STORAGE_KEY, PREVIEW_SNAPSHOT_BASE);
+                return;
+            }
+
+            const stored = localStorage.getItem(PREVIEW_STORAGE_KEY);
+            if (stored) {
+                PREVIEW_SNAPSHOT_BASE = stored;
+                syncPreviewBaseToUrl(stored.replace(/\/snap\/snap9\.jpg(?:\?.*)?$/i, '').replace(/^https?:\/\//i, ''));
+                return;
+            }
+
+            PREVIEW_SNAPSHOT_BASE = DEFAULT_PREVIEW_SNAPSHOT_BASE;
+        }
+
+        window.addEventListener('focus', () => startPreviewLoop());
+        window.addEventListener('online', () => startPreviewLoop());
+        window.addEventListener('pageshow', () => startPreviewLoop());
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) startPreviewLoop();
+        });
 
 
         client.on('connect', () => {
@@ -389,6 +459,7 @@
         });
 
         window.onload = () => {
+            restorePreviewBaseFromStorage();
             loadSavedData();
             updateScoreDisplay();
             updateAll();
@@ -472,8 +543,7 @@
             document.getElementById('period-toggle').checked = !!d.period;
 
             if (d.previewBase) {
-                PREVIEW_SNAPSHOT_BASE = d.previewBase;
-                localStorage.setItem(PREVIEW_STORAGE_KEY, PREVIEW_SNAPSHOT_BASE);
+                setPreviewBase(d.previewBase.replace(/\/snap\/snap9\.jpg(?:\?.*)?$/i, '').replace(/^https?:\/\//i, ''), false, false);
             }
 
             if (d.zState) {

@@ -59,13 +59,13 @@
         .preview-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 15px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(31,111,235,0.18), rgba(0,0,0,0)); }
         .preview-title { font-weight: 900; letter-spacing: 0.4px; text-transform: uppercase; font-size: 12px; }
         .preview-status { font-size: 11px; color: #8b949e; }
+        .preview-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+        .preview-refresh { font-size: 11px; color: #8b949e; font-weight: 700; white-space: nowrap; }
+        .preview-gear { border: 1px solid var(--border); background: #010409; color: white; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1; }
+        .preview-gear:hover { border-color: var(--accent); }
         .preview-frame { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
         .preview-frame img { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
         .preview-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #8b949e; font-size: 12px; pointer-events: none; }
-        .preview-actions { display: flex; gap: 10px; padding: 12px 15px 15px; }
-        .btn-mini { border: 1px solid var(--border); background: #010409; color: white; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; flex: 1; }
-        .btn-mini:hover { border-color: var(--accent); }
-        .preview-note { padding: 0 15px 14px; font-size: 11px; color: #8b949e; line-height: 1.45; }
 
     </style>
 </head>
@@ -87,18 +87,14 @@
                         <div class="preview-title">PREVIEW ENC1 V3</div>
                         <div class="preview-status" id="preview-status">Cargando vista previa...</div>
                     </div>
-                    <div style="font-size:11px; color:#8b949e; font-weight:700;">Auto-refresh</div>
+                    <div class="preview-tools">
+                        <div class="preview-refresh">Auto-refresh</div>
+                        <button class="preview-gear" type="button" onclick="setPreviewIP()" title="Cambiar IP del encoder">⚙</button>
+                    </div>
                 </div>
                 <div class="preview-frame">
                     <img id="mix-preview-img" alt="Vista previa de ENC1 V3">
                     <div class="preview-fallback" id="preview-fallback">Sin señal de imagen todavía.</div>
-                </div>
-                <div class="preview-actions">
-                    <button class="btn-mini" type="button" onclick="refreshPreview(true)">ACTUALIZAR</button>
-                    <button class="btn-mini" type="button" onclick="window.open(PREVIEW_SNAPSHOT_BASE + '?rnd=' + Date.now(), '_blank')">ABRIR SNAP</button>
-                </div>
-                <div class="preview-note">
-                    Vista previa directa de <b>snap9.jpg</b> del encoder. Si abres este archivo en una página <b>HTTPS</b> (por ejemplo GitHub Pages), el navegador puede bloquear la URL <b>http://192.168.1.75</b> por ser contenido mixto.
                 </div>
             </div>
 
@@ -327,9 +323,35 @@
 
         let zState = defaultZState();
 
-        const PREVIEW_SNAPSHOT_BASE = 'http://192.168.1.75/snap/snap9.jpg';
+        const DEFAULT_PREVIEW_SNAPSHOT_BASE = 'http://192.168.1.75/snap/snap9.jpg';
         const PREVIEW_REFRESH_MS = 1500;
+        const PREVIEW_STORAGE_KEY = ID_UNICO + '_preview_snapshot_base';
+        let PREVIEW_SNAPSHOT_BASE = localStorage.getItem(PREVIEW_STORAGE_KEY) || DEFAULT_PREVIEW_SNAPSHOT_BASE;
         let previewTimer = null;
+
+        function normalizePreviewBase(value) {
+            let raw = String(value ?? '').trim();
+            if (!raw) return '';
+            raw = raw.replace(/\/+$/, '');
+            if (/^https?:\/\//i.test(raw)) {
+                return raw + '/snap/snap9.jpg';
+            }
+            return `http://${raw}/snap/snap9.jpg`;
+        }
+
+        function setPreviewIP() {
+            const current = PREVIEW_SNAPSHOT_BASE.replace(/\/snap\/snap9\.jpg(?:\?.*)?$/i, '').replace(/^https?:\/\//i, '');
+            const input = prompt('Ingresa la IP o URL base del encoder:', current);
+            if (input === null) return;
+            const base = normalizePreviewBase(input);
+            if (!base) {
+                alert('Debes ingresar una IP válida.');
+                return;
+            }
+            PREVIEW_SNAPSHOT_BASE = base;
+            localStorage.setItem(PREVIEW_STORAGE_KEY, PREVIEW_SNAPSHOT_BASE);
+            refreshPreview(true);
+        }
 
         function refreshPreview(manual = false) {
             const img = document.getElementById('mix-preview-img');
@@ -416,7 +438,8 @@
                 limit: document.getElementById('limit-min').value,
                 extra: document.getElementById('extra-min').value,
                 period: document.getElementById('period-toggle').checked,
-                zState: zState
+                zState: zState,
+                previewBase: PREVIEW_SNAPSHOT_BASE
             };
             localStorage.setItem(ID_UNICO + '_storage', JSON.stringify(currentData));
         }
@@ -447,6 +470,11 @@
             document.getElementById('limit-min').value = d.limit ?? 45;
             document.getElementById('extra-min').value = d.extra ?? 0;
             document.getElementById('period-toggle').checked = !!d.period;
+
+            if (d.previewBase) {
+                PREVIEW_SNAPSHOT_BASE = d.previewBase;
+                localStorage.setItem(PREVIEW_STORAGE_KEY, PREVIEW_SNAPSHOT_BASE);
+            }
 
             if (d.zState) {
                 zState = mergeZState(defaultZState(), d.zState);

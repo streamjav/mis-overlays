@@ -24,7 +24,8 @@
 
         .overlay-root { position: fixed; inset: 0; pointer-events: none; overflow: hidden; font-family: 'Inter', Arial, sans-serif; }
 
-        .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; transform-origin: bottom left; transition: 0.45s cubic-bezier(0.16,1,0.3,1); }
+        .webrtc-wrap { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+        .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; z-index: 20; transform-origin: bottom left; transition: 0.45s cubic-bezier(0.16,1,0.3,1); }
         .zocalo-hidden { opacity: 0; transform: translateY(90px) scale(0.96); }
         .zocalo-visible { opacity: 1; transform: translateY(0) scale(1); }
 
@@ -85,7 +86,7 @@
         .z-tv-sport h1 { margin: 0; font-weight: 900; font-size: 42px; transform: skewX(15deg); text-transform: uppercase; letter-spacing: -1px; animation: slideUp 0.6s both 0.3s; }
         @keyframes slideUp { from { transform: skewX(15deg) translateY(100%); } to { transform: skewX(15deg) translateY(0); } }
 
-        #social-wrap { position: absolute; left: 48px; bottom: 150px; display: none; transform-origin: bottom left; }
+        #social-wrap { position: absolute; left: 48px; bottom: 150px; display: none; z-index: 30; transform-origin: bottom left; }
         .soc-pill-main { background: white; color: black; padding: 10px 20px; border-radius: 999px; display: flex; align-items: center; gap: 14px; box-shadow: 0 14px 40px rgba(0,0,0,0.35); border: 2px solid #e2e8f0; }
         .soc-box { padding: 6px 14px; border-radius: 8px; font-weight: 900; font-size: 20px; color: white; letter-spacing: 1px; text-transform: uppercase; }
         .soc-handle { font-size: 24px; font-weight: 900; color: #0f172a; }
@@ -96,63 +97,18 @@
         .soc-twitter .soc-box { background: #000000; }
         .soc-tiktok .soc-box { background: #000000; text-shadow: 2px 0px 0px #00f2fe, -2px 0px 0px #fe0979; }
 
-        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; align-items: center; overflow: hidden; }
+        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; z-index: 50; align-items: center; overflow: hidden; }
         .ticker-label { background: #dc2626; height: 100%; padding: 0 28px; display: flex; align-items: center; font-weight: 900; color: white; z-index: 2; position: relative; }
         .ticker-move { display: inline-block; animation: ticker 25s linear infinite; font-size: 20px; font-weight: 800; color: white; white-space: nowrap; padding-left: 100%; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
-        .top-right-bug { position: absolute; top: 40px; right: 50px; display: flex; gap: 10px; z-index: 50; }
+        .top-right-bug { position: absolute; top: 40px; right: 50px; display: flex; gap: 10px; z-index: 60; }
         .tag-live { background: #e11d48; color: white; font-weight: 900; font-size: 18px; padding: 4px 15px; border-radius: 6px; animation: pulse 2s infinite; letter-spacing: 1px; display: none; }
         .tag-clock { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); color: white; font-weight: 800; font-size: 18px; padding: 4px 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: none; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
         .watermark { position: absolute; display: none; z-index: 1000; transition: all 0.5s ease; }
         .watermark img { filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); transition: width 0.3s ease; }
-
-        .webrtc-layer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 950; }
-        .webrtc-wrap {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100vw;
-            height: 100vh;
-            opacity: 0;
-            transform: translateY(8px) scale(0.985);
-            transition:
-                left 0.65s cubic-bezier(0.16,1,0.3,1),
-                top 0.65s cubic-bezier(0.16,1,0.3,1),
-                width 0.65s cubic-bezier(0.16,1,0.3,1),
-                height 0.65s cubic-bezier(0.16,1,0.3,1),
-                opacity 0.35s ease,
-                transform 0.65s cubic-bezier(0.16,1,0.3,1);
-            will-change: left, top, width, height, transform, opacity;
-            overflow: hidden;
-            border-radius: 18px;
-            box-shadow: 0 22px 50px rgba(0,0,0,0.45);
-            background: #000;
-        }
-        .webrtc-wrap.visible { opacity: 1; transform: translateY(0) scale(1); }
-        .webrtc-frame {
-            width: 100%;
-            height: 100%;
-            border: 0;
-            display: block;
-            background: #000;
-        }
-        .webrtc-badge {
-            position: absolute;
-            left: 12px;
-            top: 12px;
-            z-index: 2;
-            background: rgba(15, 23, 42, 0.65);
-            color: white;
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 800;
-            backdrop-filter: blur(10px);
-            user-select: none;
-        }
     </style>
 </head>
 <body>
@@ -175,15 +131,9 @@
         </div>
     </div>
 
-
-    <div class="webrtc-layer">
-        <div id="webrtc-wrap" class="webrtc-wrap" aria-hidden="true">
-            <div class="webrtc-badge" id="webrtc-badge">WEBRTC</div>
-            <iframe id="webrtc-frame" class="webrtc-frame" allow="autoplay; fullscreen; picture-in-picture; camera; microphone"></iframe>
-        </div>
-    </div>
-
     <div class="overlay-root">
+        <div id="webrtc-wrap" class="webrtc-wrap"></div>
+
         <div id="zocalo-wrap" class="zocalo-wrap zocalo-hidden z-modern">
             <div class="z-base" id="z-base-content"></div>
         </div>
@@ -212,16 +162,6 @@
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         let seconds = 0, timerInterval = null;
 
-        const WEBRTC_DEFAULT = {
-            visible: false,
-            url: "",
-            mode: "pip",
-            position: "tr"
-        };
-        let webrtcState = { ...WEBRTC_DEFAULT };
-        let webrtcFrameLoaded = false;
-        let webrtcRaf = null;
-
         client.on('connect', () => client.subscribe(ID_UNICO));
         client.on('message', (topic, message) => {
             const { type, data } = JSON.parse(message.toString());
@@ -236,115 +176,8 @@
                 if (data.command === 'reset') { clearInterval(timerInterval); seconds = 0; updateClock(); }
             }
             if (type === 'zocalo_update') applyZocaloUpdate(data);
-            if (type === 'webrtc_update') applyWebRTCState(data, false);
-            if (type === 'webrtc_control') {
-                if (data.action === 'show') applyWebRTCState(webrtcState, true);
-                if (data.action === 'hide') hideWebRTC();
-            }
         });
 
-
-        function clampNumber(n, min, max) {
-            return Math.min(max, Math.max(min, n));
-        }
-
-        function getWebRTCPositionXY(position, width, height) {
-            const margin = 28;
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
-
-            const xRight = Math.max(margin, vw - width - margin);
-            const yBottom = Math.max(margin, vh - height - margin);
-
-            if (position === 'tl') return { x: margin, y: margin };
-            if (position === 'br') return { x: xRight, y: yBottom };
-            if (position === 'bl') return { x: margin, y: yBottom };
-            return { x: xRight, y: margin };
-        }
-
-        function fitWebRTCSize(mode) {
-            if (mode === 'fullscreen') {
-                return {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                };
-            }
-
-            const maxWidth = clampNumber(window.innerWidth * 0.34, 300, 620);
-            const width = Math.floor(maxWidth);
-            const height = Math.floor(width * 9 / 16);
-            return { width, height };
-        }
-
-        function applyWebRTCPosition() {
-            const wrap = document.getElementById('webrtc-wrap');
-            if (!wrap || !webrtcState.url) return;
-
-            const mode = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
-            const { width, height } = fitWebRTCSize(mode);
-            const pos = mode === 'fullscreen' ? { x: 0, y: 0 } : getWebRTCPositionXY(webrtcState.position || 'tr', width, height);
-
-            wrap.style.width = width + 'px';
-            wrap.style.height = height + 'px';
-            wrap.style.left = pos.x + 'px';
-            wrap.style.top = pos.y + 'px';
-            wrap.style.borderRadius = mode === 'fullscreen' ? '0px' : '18px';
-        }
-
-        function applyWebRTCState(data, forceVisible = false) {
-            const wrap = document.getElementById('webrtc-wrap');
-            const frame = document.getElementById('webrtc-frame');
-            const badge = document.getElementById('webrtc-badge');
-            if (!wrap || !frame) return;
-
-            webrtcState = {
-                ...WEBRTC_DEFAULT,
-                ...(data || {})
-            };
-
-            const url = String(webrtcState.url || '').trim();
-            if (url) {
-                const currentSrc = frame.getAttribute('src') || '';
-                if (currentSrc !== url) {
-                    frame.src = url;
-                    webrtcFrameLoaded = false;
-                }
-                if (badge) badge.innerText = webrtcState.mode === 'fullscreen' ? 'WEBRTC • FULLSCREEN' : `WEBRTC • ${String(webrtcState.position || 'tr').toUpperCase()}`;
-            } else {
-                frame.removeAttribute('src');
-                webrtcFrameLoaded = false;
-                wrap.classList.remove('visible');
-                return;
-            }
-
-            const shouldShow = forceVisible || !!webrtcState.visible;
-            webrtcState.visible = shouldShow;
-
-            applyWebRTCPosition();
-
-            wrap.classList.toggle('visible', shouldShow);
-            wrap.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
-
-            if (shouldShow) {
-                requestAnimationFrame(() => {
-                    applyWebRTCPosition();
-                });
-            }
-        }
-
-        function hideWebRTC() {
-            const wrap = document.getElementById('webrtc-wrap');
-            if (!wrap) return;
-            webrtcState.visible = false;
-            wrap.classList.remove('visible');
-            wrap.setAttribute('aria-hidden', 'true');
-        }
-
-        window.addEventListener('resize', () => {
-            if (webrtcState && webrtcState.visible && webrtcState.url) {
-                applyWebRTCPosition();
-            }
-        });
         function esc(txt) {
             return String(txt ?? '').replace(/[&<>"']/g, m => ({
                 '&': '&amp;',

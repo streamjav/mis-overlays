@@ -11,6 +11,7 @@
             position: absolute; top: 40px; left: 50px; display: flex; align-items: stretch; height: 55px;
             filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
             transform: translateY(-120px); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 30;
         }
         #scoreboard.active { transform: translateY(0); }
         .team-container { display: flex; align-items: stretch; flex-grow: 1; min-width: 180px; }
@@ -24,7 +25,48 @@
 
         .overlay-root { position: fixed; inset: 0; pointer-events: none; overflow: hidden; font-family: 'Inter', Arial, sans-serif; }
 
-        .webrtc-wrap { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+        .webrtc-wrap { position: absolute; inset: 0; z-index: 15; pointer-events: none; overflow: hidden; }
+.webrtc-stage { position: absolute; inset: 0; pointer-events: none; }
+.webrtc-shell {
+    position: absolute;
+    overflow: hidden;
+    background: #000;
+    border-radius: 18px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    opacity: 0;
+    transition:
+        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+        width 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+        height 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.25s ease,
+        border-radius 0.35s ease;
+    will-change: transform, width, height, opacity;
+}
+.webrtc-shell.visible { opacity: 1; }
+.webrtc-shell.fullscreen {
+    border-radius: 0;
+    box-shadow: none;
+}
+.webrtc-shell iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #000;
+}
+.webrtc-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: rgba(255,255,255,0.75);
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.4;
+    pointer-events: none;
+}
         .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; z-index: 20; transform-origin: bottom left; transition: 0.45s cubic-bezier(0.16,1,0.3,1); }
         .zocalo-hidden { opacity: 0; transform: translateY(90px) scale(0.96); }
         .zocalo-visible { opacity: 1; transform: translateY(0) scale(1); }
@@ -132,7 +174,7 @@
     </div>
 
     <div class="overlay-root">
-        <div id="webrtc-wrap" class="webrtc-wrap"></div>
+        <div id="webrtc-wrap" class="webrtc-wrap"><div id="webrtc-stage" class="webrtc-stage"></div></div>
 
         <div id="zocalo-wrap" class="zocalo-wrap zocalo-hidden z-modern">
             <div class="z-base" id="z-base-content"></div>
@@ -162,9 +204,168 @@
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         let seconds = 0, timerInterval = null;
 
+const WEBRTC_STORAGE_KEY = ID_UNICO + '_webrtc_storage';
+const DEFAULT_WEBRTC_STATE = {
+    visible: false,
+    url: "",
+    mode: "pip",
+    position: "br",
+    width: 420,
+    height: 236,
+    scale: 1
+};
+let webrtcState = { ...DEFAULT_WEBRTC_STATE };
+
+function mergeWebRTCState(base, incoming) {
+    const src = incoming || {};
+    return {
+        ...base,
+        ...src,
+        visible: !!(src.visible ?? base.visible),
+        url: String(src.url ?? src.link ?? src.src ?? src.iframe ?? base.url ?? "").trim(),
+        mode: (src.mode ?? src.view ?? base.mode ?? "pip") === "fullscreen" ? "fullscreen" : "pip",
+        position: ["tl", "tr", "bl", "br"].includes(src.position) ? src.position : (src.corner && ["tl", "tr", "bl", "br"].includes(src.corner) ? src.corner : base.position || "br"),
+        width: Math.max(240, Number(src.width ?? base.width ?? 420) || 420),
+        height: Math.max(135, Number(src.height ?? base.height ?? 236) || 236),
+        scale: Math.max(0.4, Math.min(1.8, Number(src.scale ?? base.scale ?? 1) || 1))
+    };
+}
+
+function saveWebRTCState() {
+    try { localStorage.setItem(WEBRTC_STORAGE_KEY, JSON.stringify(webrtcState)); } catch (e) {}
+}
+
+function loadWebRTCState() {
+    try {
+        const raw = localStorage.getItem(WEBRTC_STORAGE_KEY);
+        if (!raw) return;
+        webrtcState = mergeWebRTCState(DEFAULT_WEBRTC_STATE, JSON.parse(raw));
+    } catch (e) {
+        webrtcState = { ...DEFAULT_WEBRTC_STATE };
+    }
+}
+
+function ensureWebRTCElements() {
+    const stage = document.getElementById('webrtc-stage');
+    if (!stage) return null;
+    let shell = document.getElementById('webrtc-shell');
+    if (!shell) {
+        shell = document.createElement('div');
+        shell.id = 'webrtc-shell';
+        shell.className = 'webrtc-shell';
+        shell.innerHTML = `
+            <iframe id="webrtc-iframe"
+                allow="autoplay; camera; microphone; fullscreen; picture-in-picture; display-capture"
+                allowfullscreen
+                referrerpolicy="no-referrer"
+                loading="eager"
+                src="about:blank"></iframe>
+            <div id="webrtc-fallback" class="webrtc-fallback">Sin enlace WEBRTC activo.</div>
+        `;
+        stage.appendChild(shell);
+    }
+    return shell;
+}
+
+function isWebRTCMessage(msg) {
+    if (!msg || typeof msg !== 'object') return false;
+    const t = String(msg.type || '').toLowerCase();
+    if (['webrtc_update', 'webrtc_control', 'control_webrtc', 'webrtc_state'].includes(t)) return true;
+    const d = msg.data && typeof msg.data === 'object' ? msg.data : msg;
+    return !!(d && (
+        d.url || d.link || d.src || d.iframe ||
+        typeof d.mode !== 'undefined' ||
+        typeof d.position !== 'undefined' ||
+        typeof d.visible !== 'undefined' ||
+        typeof d.fullscreen !== 'undefined'
+    ));
+}
+
+function getWebRTCData(msg) {
+    const base = (msg && typeof msg === 'object') ? (msg.data && typeof msg.data === 'object' ? msg.data : msg) : {};
+    if (base.action === 'show' || base.command === 'show' || base.action === 'mostrar') base.visible = true;
+    if (base.action === 'hide' || base.command === 'hide' || base.action === 'ocultar') base.visible = false;
+    if (base.fullscreen === true) base.mode = 'fullscreen';
+    if (base.fullscreen === false && !base.mode) base.mode = 'pip';
+    if (typeof base.visible === 'undefined' && (base.url || base.link || base.src || base.iframe)) base.visible = true;
+    return base;
+}
+
+function positionToXY(position, width, height) {
+    const marginX = 40;
+    const marginY = 40;
+    const bottomY = 84;
+    const viewportW = window.innerWidth || 1280;
+    const viewportH = window.innerHeight || 720;
+    switch (position) {
+        case 'tl': return { x: marginX, y: marginY };
+        case 'tr': return { x: Math.max(marginX, viewportW - width - marginX), y: marginY };
+        case 'bl': return { x: marginX, y: Math.max(marginY, viewportH - height - bottomY) };
+        case 'br':
+        default:   return { x: Math.max(marginX, viewportW - width - marginX), y: Math.max(marginY, viewportH - height - bottomY) };
+    }
+}
+
+function layoutWebRTC(animate = true) {
+    const shell = ensureWebRTCElements();
+    if (!shell) return;
+    const iframe = document.getElementById('webrtc-iframe');
+    const fallback = document.getElementById('webrtc-fallback');
+    const visible = !!webrtcState.visible && !!String(webrtcState.url || '').trim();
+    const mode = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
+
+    shell.classList.toggle('visible', visible);
+    shell.classList.toggle('fullscreen', visible && mode === 'fullscreen');
+    if (!animate) shell.style.transition = 'none';
+    else shell.style.transition = '';
+
+    if (!visible) {
+        shell.style.width = '0px';
+        shell.style.height = '0px';
+        shell.style.transform = 'translate3d(0px, 0px, 0) scale(0.98)';
+        if (fallback) fallback.style.display = 'flex';
+        return;
+    }
+
+    const src = String(webrtcState.url).trim();
+    if (iframe && iframe.src !== src) iframe.src = src;
+
+    if (mode === 'fullscreen') {
+        shell.style.width = '100vw';
+        shell.style.height = '100vh';
+        shell.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
+        if (fallback) fallback.style.display = 'none';
+        return;
+    }
+
+    const width = Math.round(Number(webrtcState.width || 420) * Number(webrtcState.scale || 1));
+    const height = Math.round(Number(webrtcState.height || 236) * Number(webrtcState.scale || 1));
+    const { x, y } = positionToXY(webrtcState.position || 'br', width, height);
+    shell.style.width = `${width}px`;
+    shell.style.height = `${height}px`;
+    shell.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1)`;
+    if (fallback) fallback.style.display = 'none';
+}
+
+function applyWebRTCUpdate(msg) {
+    const data = getWebRTCData(msg);
+    webrtcState = mergeWebRTCState(webrtcState, data);
+    saveWebRTCState();
+    layoutWebRTC(true);
+}
+
         client.on('connect', () => client.subscribe(ID_UNICO));
         client.on('message', (topic, message) => {
-            const { type, data } = JSON.parse(message.toString());
+            let payload = {};
+            try {
+                payload = JSON.parse(message.toString());
+            } catch (e) {
+                return;
+            }
+
+            const type = payload?.type;
+            const data = payload?.data;
+
             if (type === 'update_info') applyUpdate(data);
             if (type === 'control_ui') {
                 if (data.action === 'show') document.getElementById('scoreboard').classList.add('active');
@@ -176,6 +377,10 @@
                 if (data.command === 'reset') { clearInterval(timerInterval); seconds = 0; updateClock(); }
             }
             if (type === 'zocalo_update') applyZocaloUpdate(data);
+
+            if (isWebRTCMessage(payload)) {
+                applyWebRTCUpdate(payload);
+            }
         });
 
         function esc(txt) {
@@ -240,6 +445,9 @@
             const s = (seconds % 60).toString().padStart(2, '0');
             document.getElementById('clock').innerText = `${m}:${s}`;
         }
+
+        window.addEventListener('resize', () => layoutWebRTC(true));
+        window.addEventListener('orientationchange', () => layoutWebRTC(true));
 
         function applyZocaloUpdate(d) {
             const lt = d.lt || {};
@@ -336,6 +544,10 @@
             document.getElementById('live-ui').style.display = bug.showLive ? 'block' : 'none';
             document.getElementById('clock-ui').style.display = bug.showClock ? 'block' : 'none';
         }
+
+        loadWebRTCState();
+        ensureWebRTCElements();
+        layoutWebRTC(false);
 
         setInterval(() => {
             document.getElementById('clock-ui').innerText = new Date().toLocaleTimeString('es-ES', { hour12: false });

@@ -6,12 +6,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background: transparent; font-family: 'Roboto Condensed', sans-serif; }
-
         #scoreboard {
             position: absolute; top: 40px; left: 50px; display: flex; align-items: stretch; height: 55px;
             filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
             transform: translateY(-120px); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-            z-index: 30;
+            z-index: 10;
         }
         #scoreboard.active { transform: translateY(0); }
         .team-container { display: flex; align-items: stretch; flex-grow: 1; min-width: 180px; }
@@ -24,102 +23,85 @@
         #extra-time-label { position: absolute; bottom: -30px; right: 0; font-size: 20px; padding: 2px 12px; font-weight: bold; display: none; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
         .overlay-root { position: fixed; inset: 0; pointer-events: none; overflow: hidden; font-family: 'Inter', Arial, sans-serif; }
+        .webrtc-wrap { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+        .webrtc-stage { position: absolute; inset: 0; pointer-events: none; }
+        .webrtc-shell {
+            position: absolute;
+            overflow: hidden;
+            border-radius: 18px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.40);
+            background: #000;
+            opacity: 0;
+            transform: scale(0.98);
+            transition:
+                opacity 0.35s cubic-bezier(0.16,1,0.3,1),
+                transform 0.45s cubic-bezier(0.16,1,0.3,1),
+                top 0.45s cubic-bezier(0.16,1,0.3,1),
+                right 0.45s cubic-bezier(0.16,1,0.3,1),
+                bottom 0.45s cubic-bezier(0.16,1,0.3,1),
+                left 0.45s cubic-bezier(0.16,1,0.3,1),
+                width 0.45s cubic-bezier(0.16,1,0.3,1),
+                height 0.45s cubic-bezier(0.16,1,0.3,1);
+        }
+        .webrtc-shell.visible { opacity: 1; transform: scale(1); }
+        .webrtc-shell.fullscreen {
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0;
+        }
+        .webrtc-shell iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+        .webrtc-fallback {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 14px; font-weight: 700; text-align: center; padding: 18px;
+            background: linear-gradient(180deg, rgba(17,24,39,0.95), rgba(0,0,0,0.95)); pointer-events: none;
+        }
 
-        .webrtc-wrap { position: absolute; inset: 0; z-index: 15; pointer-events: none; overflow: hidden; }
-.webrtc-stage { position: absolute; inset: 0; pointer-events: none; }
-.webrtc-shell {
-    position: absolute;
-    overflow: hidden;
-    background: #000;
-    border-radius: 18px;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
-    opacity: 0;
-    transition:
-        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-        width 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-        height 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-        opacity 0.25s ease,
-        border-radius 0.35s ease;
-    will-change: transform, width, height, opacity;
-}
-.webrtc-shell.visible { opacity: 1; }
-.webrtc-shell.fullscreen {
-    border-radius: 0;
-    box-shadow: none;
-}
-.webrtc-shell iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-    display: block;
-    background: #000;
-}
-.webrtc-fallback {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    color: rgba(255,255,255,0.75);
-    text-align: center;
-    font-size: 13px;
-    line-height: 1.4;
-    pointer-events: none;
-}
         .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; z-index: 20; transform-origin: bottom left; transition: 0.45s cubic-bezier(0.16,1,0.3,1); }
         .zocalo-hidden { opacity: 0; transform: translateY(90px) scale(0.96); }
         .zocalo-visible { opacity: 1; transform: translateY(0) scale(1); }
-
         .z-base { display: inline-flex; flex-direction: column; gap: 6px; max-width: 980px; }
         .z-title { display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 18px; backdrop-filter: blur(16px); box-shadow: 0 16px 40px rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.16); position: relative; overflow: hidden; }
         .z-title h1 { margin: 0; line-height: 0.95; font-weight: 900; letter-spacing: -1.4px; text-transform: uppercase; z-index: 1; }
         .z-sub { display: inline-flex; align-items: center; width: fit-content; padding: 7px 16px; border-radius: 999px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; position: relative; z-index: 1; }
         .z-accent-bar { width: 12px; border-radius: 999px; align-self: stretch; flex: 0 0 auto; position: relative; z-index: 1; }
-
         .z-modern .z-title { background: linear-gradient(135deg, rgba(15,23,42,0.97), rgba(30,41,59,0.95)); }
         .z-modern h1 { font-size: 50px; color: #fff; }
         .z-modern .z-sub { margin-left: 18px; color: white; }
-
         .z-glass .z-title { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.22); }
         .z-glass h1 { font-size: 50px; color: white; }
         .z-glass .z-sub { background: rgba(15,23,42,0.72); color: #f8fafc; margin-left: 16px; }
-
         .z-neon .z-title { background: rgba(2,6,23,0.96); border: 1px solid rgba(255,255,255,0.10); }
         .z-neon h1 { font-size: 50px; color: white; }
         .z-neon .z-sub { background: transparent; color: white; border: 1px solid currentColor; margin-left: 16px; }
-
         .z-box .z-title { background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: none; }
         .z-box h1 { font-size: 50px; color: #0f172a; }
         .z-box .z-accent-bar { background: #3b82f6 !important; width: 8px; }
         .z-box .z-sub { margin-left: 0; border-radius: 999px; color: white; background: #0f172a; margin-top: 4px; }
-
         .z-ribbon .z-title { border-radius: 20px 0 0 20px; background: rgba(15,23,42,0.96); clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%); }
         .z-ribbon h1 { font-size: 50px; color: white; padding-right: 30px; }
         .z-ribbon .z-accent-bar { background: #22d3ee !important; width: 6px; }
         .z-ribbon .z-sub { border-radius: 0 20px 20px 0; background: #22d3ee; color: #0f172a; margin-left: -5px; z-index: 0; clip-path: polygon(5px 0%, 100% 0%, 100% 100%, 5px 100%, 0% 50%); padding-left: 20px; }
-
         .z-clean .z-title { background: transparent; border: none; box-shadow: none; border-bottom: 5px solid #f97316; border-radius: 0; backdrop-filter: none; }
         .z-clean h1 { font-size: 60px; color: white; letter-spacing: -2px; }
         .z-clean .z-accent-bar { display: none; }
         .z-clean .z-sub { background: #f97316; color: white; border-radius: 6px; margin-left: 0; }
-
         .z-premium .z-title { background: #0f172a; border-radius: 12px; border: 3px solid; border-image: linear-gradient(to bottom right, #facc15, #a16207) 1; box-shadow: 0 20px 50px rgba(161, 98, 7, 0.4); }
         .z-premium h1 { font-size: 50px; color: #facc15; font-weight: 800; }
         .z-premium .z-accent-bar { display: none; }
         .z-premium .z-sub { background: linear-gradient(to right, #facc15, #a16207); color: #0f172a; margin-left: 0; border-radius: 4px; font-weight: 900; letter-spacing: 2px; }
-
         .z-capsule { left: auto; right: 48px; transform-origin: bottom right; }
         .z-capsule .z-title { border-radius: 999px; background: #bef264; border: none; box-shadow: 0 15px 35px rgba(190, 242, 100, 0.5); }
         .z-capsule h1 { font-size: 45px; color: #166534; font-weight: 900; }
         .z-capsule .z-accent-bar { background: #166534 !important; }
         .z-capsule .z-sub { background: #166534; color: #bef264; border-radius: 999px; margin-left: 0; align-self: flex-end; }
-
         .z-underline .z-title { background: transparent; border: none; box-shadow: none; padding: 0; border-radius: 0; }
         .z-underline h1 { font-size: 50px; color: white; padding-bottom: 10px; display: inline-block; text-shadow: 0 8px 24px rgba(0,0,0,0.25); }
         .z-underline .z-sub { margin-left: 0; margin-top: 8px; background: rgba(15,23,42,0.94); color: white; border-radius: 12px; }
         .z-underline .z-accent-bar { display: none; }
-
         .z-tv-sport { display: flex; align-items: flex-end; }
         .z-tv-sport .bar-container { display: flex; flex-direction: column; gap: 0; }
         .z-tv-sport .main-bar { background: #1a1a1a; color: white; height: 65px; display: flex; align-items: center; padding: 0 40px 0 30px; transform: skewX(-15deg); box-shadow: 10px 10px 30px rgba(0,0,0,0.5); overflow: hidden; }
@@ -132,29 +114,24 @@
         .soc-pill-main { background: white; color: black; padding: 10px 20px; border-radius: 999px; display: flex; align-items: center; gap: 14px; box-shadow: 0 14px 40px rgba(0,0,0,0.35); border: 2px solid #e2e8f0; }
         .soc-box { padding: 6px 14px; border-radius: 8px; font-weight: 900; font-size: 20px; color: white; letter-spacing: 1px; text-transform: uppercase; }
         .soc-handle { font-size: 24px; font-weight: 900; color: #0f172a; }
-
         .soc-facebook .soc-box { background: #1877f2; }
         .soc-youtube .soc-box { background: #ff0000; }
         .soc-instagram .soc-box { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
         .soc-twitter .soc-box { background: #000000; }
         .soc-tiktok .soc-box { background: #000000; text-shadow: 2px 0px 0px #00f2fe, -2px 0px 0px #fe0979; }
-
         .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; z-index: 50; align-items: center; overflow: hidden; }
         .ticker-label { background: #dc2626; height: 100%; padding: 0 28px; display: flex; align-items: center; font-weight: 900; color: white; z-index: 2; position: relative; }
         .ticker-move { display: inline-block; animation: ticker 25s linear infinite; font-size: 20px; font-weight: 800; color: white; white-space: nowrap; padding-left: 100%; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
-
         .top-right-bug { position: absolute; top: 40px; right: 50px; display: flex; gap: 10px; z-index: 60; }
         .tag-live { background: #e11d48; color: white; font-weight: 900; font-size: 18px; padding: 4px 15px; border-radius: 6px; animation: pulse 2s infinite; letter-spacing: 1px; display: none; }
         .tag-clock { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); color: white; font-weight: 800; font-size: 18px; padding: 4px 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: none; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-
-        .watermark { position: absolute; display: none; z-index: 1000; transition: all 0.5s ease; }
+        .watermark { position: absolute; display: none; z-index: 40; transition: all 0.5s ease; }
         .watermark img { filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); transition: width 0.3s ease; }
     </style>
 </head>
 <body>
-
     <div id="scoreboard">
         <div class="team-container" id="group-l">
             <div class="logo-box" id="logo-box-l"><img id="logo-l" src=""></div>
@@ -175,28 +152,11 @@
 
     <div class="overlay-root">
         <div id="webrtc-wrap" class="webrtc-wrap"><div id="webrtc-stage" class="webrtc-stage"></div></div>
-
-        <div id="zocalo-wrap" class="zocalo-wrap zocalo-hidden z-modern">
-            <div class="z-base" id="z-base-content"></div>
-        </div>
-
-        <div id="social-wrap">
-            <div id="social-content"></div>
-        </div>
-
-        <div class="watermark" id="watermark-logo">
-            <img id="watermark-img" src="" alt="logo">
-        </div>
-
-        <div class="ticker-bar" id="ticker-ui">
-            <div class="ticker-label">NOTICIAS</div>
-            <div class="ticker-move" id="ticker-txt"></div>
-        </div>
-
-        <div class="top-right-bug">
-            <div class="tag-live" id="live-ui">VIVO</div>
-            <div class="tag-clock" id="clock-ui">00:00:00</div>
-        </div>
+        <div id="zocalo-wrap" class="zocalo-wrap zocalo-hidden z-modern"><div class="z-base" id="z-base-content"></div></div>
+        <div id="social-wrap"><div id="social-content"></div></div>
+        <div class="watermark" id="watermark-logo"><img id="watermark-img" src="" alt="logo"></div>
+        <div class="ticker-bar" id="ticker-ui"><div class="ticker-label">NOTICIAS</div><div class="ticker-move" id="ticker-txt"></div></div>
+        <div class="top-right-bug"><div class="tag-live" id="live-ui">VIVO</div><div class="tag-clock" id="clock-ui">00:00:00</div></div>
     </div>
 
     <script>
@@ -204,168 +164,196 @@
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         let seconds = 0, timerInterval = null;
 
-const WEBRTC_STORAGE_KEY = ID_UNICO + '_webrtc_storage';
-const DEFAULT_WEBRTC_STATE = {
-    visible: false,
-    url: "",
-    mode: "pip",
-    position: "br",
-    width: 420,
-    height: 236,
-    scale: 1
-};
-let webrtcState = { ...DEFAULT_WEBRTC_STATE };
+        const WEBRTC_STORAGE_KEY = ID_UNICO + '_webrtc_storage';
+        const DEFAULT_WEBRTC_STATE = { url: "", visible: false, mode: "pip", position: "br", width: 420, height: 236, scale: 1 };
+        let webrtcState = { ...DEFAULT_WEBRTC_STATE };
 
-function mergeWebRTCState(base, incoming) {
-    const src = incoming || {};
-    return {
-        ...base,
-        ...src,
-        visible: !!(src.visible ?? base.visible),
-        url: String(src.url ?? src.link ?? src.src ?? src.iframe ?? base.url ?? "").trim(),
-        mode: (src.mode ?? src.view ?? base.mode ?? "pip") === "fullscreen" ? "fullscreen" : "pip",
-        position: ["tl", "tr", "bl", "br"].includes(src.position) ? src.position : (src.corner && ["tl", "tr", "bl", "br"].includes(src.corner) ? src.corner : base.position || "br"),
-        width: Math.max(240, Number(src.width ?? base.width ?? 420) || 420),
-        height: Math.max(135, Number(src.height ?? base.height ?? 236) || 236),
-        scale: Math.max(0.4, Math.min(1.8, Number(src.scale ?? base.scale ?? 1) || 1))
-    };
-}
+        function esc(txt) {
+            return String(txt ?? '').replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[m]));
+        }
 
-function saveWebRTCState() {
-    try { localStorage.setItem(WEBRTC_STORAGE_KEY, JSON.stringify(webrtcState)); } catch (e) {}
-}
+        function defaultZState() {
+            return {
+                lt: { visible: false, title: "OSCAR ABAD", subtitle: "DIRECTOR TÉCNICO", color: "#ffcc00", scale: 100, style: "tv-sport" },
+                ticker: { visible: false, text: "ÚLTIMO MINUTO: Bienvenidos a la transmisión oficial...", speed: 25 },
+                logo: { visible: false, url: "", size: 80, pos: "tr" },
+                bug: { showLive: true, showClock: true },
+                social: { visible: false, net: "instagram", handle: "@usuario", size: 100 }
+            };
+        }
+        let zState = defaultZState();
 
-function loadWebRTCState() {
-    try {
-        const raw = localStorage.getItem(WEBRTC_STORAGE_KEY);
-        if (!raw) return;
-        webrtcState = mergeWebRTCState(DEFAULT_WEBRTC_STATE, JSON.parse(raw));
-    } catch (e) {
-        webrtcState = { ...DEFAULT_WEBRTC_STATE };
-    }
-}
+        function mergeWebRTCState(base, incoming) {
+            const d = incoming || {};
+            const src = d.data && typeof d.data === 'object' ? d.data : d;
+            let visible = base.visible;
+            if (typeof src.visible === 'boolean') visible = src.visible;
+            if (typeof src.show === 'boolean') visible = src.show;
+            if (typeof src.hide === 'boolean') visible = !src.hide;
+            if (src.action === 'show') visible = true;
+            if (src.action === 'hide') visible = false;
+            const url = String(src.url ?? src.link ?? src.src ?? src.iframe ?? base.url ?? "").trim();
+            const mode = String(src.mode ?? src.view ?? base.mode ?? 'pip').toLowerCase();
+            const position = String(src.position ?? src.pos ?? base.position ?? 'br').toLowerCase();
+            return {
+                ...base,
+                ...src,
+                url,
+                visible,
+                mode: mode === 'fullscreen' ? 'fullscreen' : 'pip',
+                position: ['tl', 'tr', 'bl', 'br'].includes(position) ? position : base.position,
+                width: Number(src.width ?? base.width ?? 420) || 420,
+                height: Number(src.height ?? base.height ?? 236) || 236,
+                scale: Number(src.scale ?? base.scale ?? 1) || 1
+            };
+        }
 
-function ensureWebRTCElements() {
-    const stage = document.getElementById('webrtc-stage');
-    if (!stage) return null;
-    let shell = document.getElementById('webrtc-shell');
-    if (!shell) {
-        shell = document.createElement('div');
-        shell.id = 'webrtc-shell';
-        shell.className = 'webrtc-shell';
-        shell.innerHTML = `
-            <iframe id="webrtc-iframe"
-                allow="autoplay; camera; microphone; fullscreen; picture-in-picture; display-capture"
-                allowfullscreen
-                referrerpolicy="no-referrer"
-                loading="eager"
-                src="about:blank"></iframe>
-            <div id="webrtc-fallback" class="webrtc-fallback">Sin enlace WEBRTC activo.</div>
-        `;
-        stage.appendChild(shell);
-    }
-    return shell;
-}
+        function loadWebRTCState() {
+            try {
+                const raw = localStorage.getItem(WEBRTC_STORAGE_KEY);
+                if (raw) webrtcState = mergeWebRTCState(DEFAULT_WEBRTC_STATE, JSON.parse(raw));
+            } catch (e) { webrtcState = { ...DEFAULT_WEBRTC_STATE }; }
+        }
+        function saveWebRTCState() { try { localStorage.setItem(WEBRTC_STORAGE_KEY, JSON.stringify(webrtcState)); } catch (e) {} }
+        function saveData() { try { localStorage.setItem(ID_UNICO + '_storage', JSON.stringify({
+            scoreL: document.getElementById('score-l').innerText,
+            scoreV: document.getElementById('score-v').innerText,
+            nameL: document.getElementById('name-l').innerText,
+            nameV: document.getElementById('name-v').innerText,
+            logoL: document.getElementById('logo-l').src,
+            logoV: document.getElementById('logo-v').src,
+            bgL: document.getElementById('name-l').style.backgroundColor,
+            txtL: document.getElementById('name-l').style.color,
+            bgV: document.getElementById('name-v').style.backgroundColor,
+            txtV: document.getElementById('name-v').style.color,
+            bgScore: document.getElementById('score-l').style.backgroundColor,
+            txtScore: document.getElementById('score-l').style.color,
+            bgClock: document.getElementById('timer-ui').style.backgroundColor,
+            txtClock: document.getElementById('timer-ui').style.color,
+            bgExtra: document.getElementById('extra-time-label').style.backgroundColor,
+            txtExtra: document.getElementById('extra-time-label').style.color,
+            periodText: document.getElementById('period-ui').innerText,
+            zState,
+            previewBase: ''
+        })); } catch (e) {} }
 
-function isWebRTCMessage(msg) {
-    if (!msg || typeof msg !== 'object') return false;
-    const t = String(msg.type || '').toLowerCase();
-    if (['webrtc_update', 'webrtc_control', 'control_webrtc', 'webrtc_state'].includes(t)) return true;
-    const d = msg.data && typeof msg.data === 'object' ? msg.data : msg;
-    return !!(d && (
-        d.url || d.link || d.src || d.iframe ||
-        typeof d.mode !== 'undefined' ||
-        typeof d.position !== 'undefined' ||
-        typeof d.visible !== 'undefined' ||
-        typeof d.fullscreen !== 'undefined'
-    ));
-}
+        function positionToXY(position, width, height) {
+            const marginX = 40, marginY = 40;
+            const maxX = Math.max(window.innerWidth - width - marginX, marginX);
+            const maxY = Math.max(window.innerHeight - height - marginY, marginY);
+            switch (position) {
+                case 'tl': return { x: marginX, y: marginY };
+                case 'tr': return { x: maxX, y: marginY };
+                case 'bl': return { x: marginX, y: maxY };
+                default: return { x: maxX, y: maxY };
+            }
+        }
 
-function getWebRTCData(msg) {
-    const base = (msg && typeof msg === 'object') ? (msg.data && typeof msg.data === 'object' ? msg.data : msg) : {};
-    if (base.action === 'show' || base.command === 'show' || base.action === 'mostrar') base.visible = true;
-    if (base.action === 'hide' || base.command === 'hide' || base.action === 'ocultar') base.visible = false;
-    if (base.fullscreen === true) base.mode = 'fullscreen';
-    if (base.fullscreen === false && !base.mode) base.mode = 'pip';
-    if (typeof base.visible === 'undefined' && (base.url || base.link || base.src || base.iframe)) base.visible = true;
-    return base;
-}
+        function ensureWebRTCShell() {
+            const stage = document.getElementById('webrtc-stage');
+            if (!stage) return null;
+            let shell = document.getElementById('webrtc-shell');
+            if (shell) return shell;
+            shell = document.createElement('div');
+            shell.id = 'webrtc-shell';
+            shell.className = 'webrtc-shell';
+            shell.innerHTML = `
+                <iframe id="webrtc-iframe" allow="autoplay; fullscreen; picture-in-picture; microphone; camera" allowfullscreen referrerpolicy="no-referrer" src="about:blank"></iframe>
+                <div id="webrtc-fallback" class="webrtc-fallback">Sin enlace WEBRTC activo.</div>
+            `;
+            stage.appendChild(shell);
+            return shell;
+        }
 
-function positionToXY(position, width, height) {
-    const marginX = 40;
-    const marginY = 40;
-    const bottomY = 84;
-    const viewportW = window.innerWidth || 1280;
-    const viewportH = window.innerHeight || 720;
-    switch (position) {
-        case 'tl': return { x: marginX, y: marginY };
-        case 'tr': return { x: Math.max(marginX, viewportW - width - marginX), y: marginY };
-        case 'bl': return { x: marginX, y: Math.max(marginY, viewportH - height - bottomY) };
-        case 'br':
-        default:   return { x: Math.max(marginX, viewportW - width - marginX), y: Math.max(marginY, viewportH - height - bottomY) };
-    }
-}
+        function destroyWebRTCShell() {
+            const iframe = document.getElementById('webrtc-iframe');
+            const shell = document.getElementById('webrtc-shell');
+            if (iframe) { try { iframe.src = 'about:blank'; } catch (e) {} }
+            if (shell) shell.remove();
+        }
 
-function layoutWebRTC(animate = true) {
-    const shell = ensureWebRTCElements();
-    if (!shell) return;
-    const iframe = document.getElementById('webrtc-iframe');
-    const fallback = document.getElementById('webrtc-fallback');
-    const visible = !!webrtcState.visible && !!String(webrtcState.url || '').trim();
-    const mode = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
+        function renderWebRTC() {
+            const visible = !!webrtcState.visible && !!String(webrtcState.url || '').trim();
+            if (!visible) {
+                destroyWebRTCShell();
+                saveWebRTCState();
+                return;
+            }
+            const shell = ensureWebRTCShell();
+            if (!shell) return;
+            const iframe = document.getElementById('webrtc-iframe');
+            const fallback = document.getElementById('webrtc-fallback');
+            const mode = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
+            if (mode === 'fullscreen') {
+                shell.classList.add('fullscreen');
+                shell.style.width = '100vw';
+                shell.style.height = '100vh';
+                shell.style.left = '0'; shell.style.top = '0'; shell.style.right = 'auto'; shell.style.bottom = 'auto';
+            } else {
+                shell.classList.remove('fullscreen');
+                const width = Math.round(Number(webrtcState.width || 420) * Number(webrtcState.scale || 1));
+                const height = Math.round(Number(webrtcState.height || 236) * Number(webrtcState.scale || 1));
+                const { x, y } = positionToXY(webrtcState.position || 'br', width, height);
+                shell.style.width = `${width}px`;
+                shell.style.height = `${height}px`;
+                shell.style.left = `${x}px`;
+                shell.style.top = `${y}px`;
+                shell.style.right = 'auto'; shell.style.bottom = 'auto';
+                shell.style.borderRadius = '18px';
+            }
+            if (fallback) fallback.style.display = 'none';
+            const src = String(webrtcState.url).trim();
+            if (iframe && iframe.src !== src) iframe.src = src;
+            requestAnimationFrame(() => shell.classList.add('visible'));
+            saveWebRTCState();
+        }
 
-    shell.classList.toggle('visible', visible);
-    shell.classList.toggle('fullscreen', visible && mode === 'fullscreen');
-    if (!animate) shell.style.transition = 'none';
-    else shell.style.transition = '';
+        function applyWebRTC(data) {
+            const incoming = data && typeof data === 'object' ? (data.data && typeof data.data === 'object' ? data.data : data) : {};
+            webrtcState = mergeWebRTCState(webrtcState, incoming);
+            renderWebRTC();
+        }
 
-    if (!visible) {
-        shell.style.width = '0px';
-        shell.style.height = '0px';
-        shell.style.transform = 'translate3d(0px, 0px, 0) scale(0.98)';
-        if (fallback) fallback.style.display = 'flex';
-        return;
-    }
-
-    const src = String(webrtcState.url).trim();
-    if (iframe && iframe.src !== src) iframe.src = src;
-
-    if (mode === 'fullscreen') {
-        shell.style.width = '100vw';
-        shell.style.height = '100vh';
-        shell.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
-        if (fallback) fallback.style.display = 'none';
-        return;
-    }
-
-    const width = Math.round(Number(webrtcState.width || 420) * Number(webrtcState.scale || 1));
-    const height = Math.round(Number(webrtcState.height || 236) * Number(webrtcState.scale || 1));
-    const { x, y } = positionToXY(webrtcState.position || 'br', width, height);
-    shell.style.width = `${width}px`;
-    shell.style.height = `${height}px`;
-    shell.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1)`;
-    if (fallback) fallback.style.display = 'none';
-}
-
-function applyWebRTCUpdate(msg) {
-    const data = getWebRTCData(msg);
-    webrtcState = mergeWebRTCState(webrtcState, data);
-    saveWebRTCState();
-    layoutWebRTC(true);
-}
+        function loadSavedData() {
+            const saved = localStorage.getItem(ID_UNICO + '_storage');
+            if (!saved) return;
+            const d = JSON.parse(saved);
+            document.getElementById('score-l').innerText = d.scoreL ?? 0;
+            document.getElementById('score-v').innerText = d.scoreV ?? 0;
+            document.getElementById('name-l').innerText = d.nameL ?? 'LOCAL';
+            document.getElementById('name-v').innerText = d.nameV ?? 'VISITA';
+            document.getElementById('logo-l').src = d.logoL ?? '';
+            document.getElementById('logo-v').src = d.logoV ?? '';
+            document.getElementById('name-l').style.backgroundColor = d.bgL ?? '#0000FF';
+            document.getElementById('name-l').style.color = d.txtL ?? '#FFFFFF';
+            document.getElementById('name-v').style.backgroundColor = d.bgV ?? '#FFFF00';
+            document.getElementById('name-v').style.color = d.txtV ?? '#000000';
+            document.getElementById('score-l').style.backgroundColor = d.bgScore ?? '#1f6feb';
+            document.getElementById('score-l').style.color = d.txtScore ?? '#FFFFFF';
+            document.getElementById('score-v').style.backgroundColor = d.bgScore ?? '#1f6feb';
+            document.getElementById('score-v').style.color = d.txtScore ?? '#FFFFFF';
+            document.getElementById('logo-box-l').style.display = d.logoL ? 'flex' : 'none';
+            document.getElementById('logo-box-v').style.display = d.logoV ? 'flex' : 'none';
+            document.getElementById('period-ui').innerText = d.periodText ?? '1T';
+            const timerBox = document.getElementById('timer-ui');
+            timerBox.style.backgroundColor = d.bgClock ?? '#1a1a1a';
+            timerBox.style.color = d.txtClock ?? '#FFFFFF';
+            const extraLabel = document.getElementById('extra-time-label');
+            if (parseInt(d.extra) > 0) {
+                extraLabel.innerText = "+" + d.extra;
+                extraLabel.style.display = 'block';
+                extraLabel.style.backgroundColor = d.bgExtra ?? '#FF0000';
+                extraLabel.style.color = d.txtExtra ?? '#FFFFFF';
+            } else extraLabel.style.display = 'none';
+            if (d.zState) zState = { ...defaultZState(), ...d.zState, lt: { ...defaultZState().lt, ...(d.zState.lt || {}) }, ticker: { ...defaultZState().ticker, ...(d.zState.ticker || {}) }, logo: { ...defaultZState().logo, ...(d.zState.logo || {}) }, bug: { ...defaultZState().bug, ...(d.zState.bug || {}) }, social: { ...defaultZState().social, ...(d.zState.social || {}) } };
+        }
 
         client.on('connect', () => client.subscribe(ID_UNICO));
         client.on('message', (topic, message) => {
-            let payload = {};
-            try {
-                payload = JSON.parse(message.toString());
-            } catch (e) {
-                return;
-            }
-
-            const type = payload?.type;
-            const data = payload?.data;
-
+            let payload; try { payload = JSON.parse(message.toString()); } catch (e) { return; }
+            const { type, data } = payload || {};
             if (type === 'update_info') applyUpdate(data);
             if (type === 'control_ui') {
                 if (data.action === 'show') document.getElementById('scoreboard').classList.add('active');
@@ -377,181 +365,126 @@ function applyWebRTCUpdate(msg) {
                 if (data.command === 'reset') { clearInterval(timerInterval); seconds = 0; updateClock(); }
             }
             if (type === 'zocalo_update') applyZocaloUpdate(data);
-
-            if (isWebRTCMessage(payload)) {
-                applyWebRTCUpdate(payload);
-            }
+            if (['webrtc_update', 'webrtc_control', 'control_webrtc', 'webrtc_state'].includes(type)) applyWebRTC(data);
         });
 
-        function esc(txt) {
-            return String(txt ?? '').replace(/[&<>"']/g, m => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            }[m]));
-        }
+        function startClock() { clearInterval(timerInterval); timerInterval = setInterval(() => { seconds++; updateClock(); }, 1000); }
+        function updateClock() { const m = Math.floor(seconds / 60).toString().padStart(2, '0'); const s = (seconds % 60).toString().padStart(2, '0'); document.getElementById('clock').innerText = `${m}:${s}`; }
 
         function applyUpdate(d) {
             document.getElementById('name-l').innerText = d.nameL;
             document.getElementById('score-l').innerText = d.scoreL;
             document.getElementById('name-l').style.backgroundColor = d.bgL;
             document.getElementById('name-l').style.color = d.txtL;
-
             const sBoxL = document.getElementById('score-l');
             sBoxL.style.backgroundColor = d.bgScore;
             sBoxL.style.color = d.txtScore;
-
             if (d.logoL) { document.getElementById('logo-l').src = d.logoL; document.getElementById('logo-box-l').style.display = 'flex'; }
             else document.getElementById('logo-box-l').style.display = 'none';
-
             document.getElementById('name-v').innerText = d.nameV;
             document.getElementById('score-v').innerText = d.scoreV;
             document.getElementById('name-v').style.backgroundColor = d.bgV;
             document.getElementById('name-v').style.color = d.txtV;
-
             const sBoxV = document.getElementById('score-v');
             sBoxV.style.backgroundColor = d.bgScore;
             sBoxV.style.color = d.txtScore;
-
             if (d.logoV) { document.getElementById('logo-v').src = d.logoV; document.getElementById('logo-box-v').style.display = 'flex'; }
             else document.getElementById('logo-box-v').style.display = 'none';
-
             document.getElementById('period-ui').innerText = d.periodText;
-
             const timerBox = document.getElementById('timer-ui');
             timerBox.style.backgroundColor = d.bgClock;
             timerBox.style.color = d.txtClock;
-
             const extraLabel = document.getElementById('extra-time-label');
             if (parseInt(d.extra) > 0) {
                 extraLabel.innerText = "+" + d.extra;
                 extraLabel.style.display = 'block';
                 extraLabel.style.backgroundColor = d.bgExtra;
                 extraLabel.style.color = d.txtExtra;
-            } else {
-                extraLabel.style.display = 'none';
-            }
+            } else extraLabel.style.display = 'none';
         }
-
-        function startClock() {
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => { seconds++; updateClock(); }, 1000);
-        }
-
-        function updateClock() {
-            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-            const s = (seconds % 60).toString().padStart(2, '0');
-            document.getElementById('clock').innerText = `${m}:${s}`;
-        }
-
-        window.addEventListener('resize', () => layoutWebRTC(true));
-        window.addEventListener('orientationchange', () => layoutWebRTC(true));
 
         function applyZocaloUpdate(d) {
-            const lt = d.lt || {};
-            const ticker = d.ticker || {};
-            const logo = d.logo || {};
-            const social = d.social || {};
-            const bug = d.bug || {};
-
+            const lt = d.lt || {}; const ticker = d.ticker || {}; const logo = d.logo || {}; const social = d.social || {}; const bug = d.bug || {};
             const wrap = document.getElementById('zocalo-wrap');
             const scale = (Number(lt.scale || 100) / 100);
             wrap.className = `zocalo-wrap ${lt.visible ? 'zocalo-visible' : 'zocalo-hidden'} z-${lt.style || 'modern'}`;
             wrap.style.transform = lt.visible ? `translateY(0) scale(${scale})` : `translateY(90px) scale(${Math.max(scale * 0.96, 0.2)})`;
-
             let html = '';
-
             if ((lt.style || 'modern') === 'tv-sport') {
-                html = `
-                <div class="bar-container" style="display:flex; flex-direction:column; gap:0;">
-                    <div class="accent-block" style="background:${lt.color || '#ffcc00'};"><span style="color:#000;">${esc(lt.subtitle)}</span></div>
-                    <div class="main-bar" style="border-left: 8px solid ${lt.color || '#ffcc00'};"><h1>${esc(lt.title)}</h1></div>
-                </div>`;
+                html = `<div class="bar-container" style="display:flex; flex-direction:column; gap:0;"><div class="accent-block" style="background:${lt.color || '#ffcc00'};"><span style="color:#000;">${esc(lt.subtitle)}</span></div><div class="main-bar" style="border-left: 8px solid ${lt.color || '#ffcc00'};"><h1>${esc(lt.title)}</h1></div></div>`;
             } else {
-                let titleStyles = "";
-                let accentStyles = `background: ${lt.color || '#ffcc00'};`;
-                let subStyles = "";
-                let h1Styles = "";
-
+                let titleStyles = ""; let accentStyles = `background: ${lt.color || '#ffcc00'};`; let subStyles = ""; let h1Styles = "";
                 if (lt.style === 'modern' || lt.style === 'ribbon') subStyles = `background: ${lt.color || '#ffcc00'};`;
                 else if (lt.style === 'glass') subStyles = `background: rgba(15,23,42,0.72); border: 1px solid rgba(255,255,255,0.16);`;
-                else if (lt.style === 'neon') {
-                    titleStyles = `color: ${lt.color || '#ffcc00'}; box-shadow: 0 0 20px ${lt.color || '#ffcc00'};`;
-                    accentStyles = `background: ${lt.color || '#ffcc00'}; box-shadow: 0 0 18px ${lt.color || '#ffcc00'};`;
-                    h1Styles = `text-shadow: 0 0 12px ${lt.color || '#ffcc00'};`;
-                    subStyles = `color: ${lt.color || '#ffcc00'}; border-color: ${lt.color || '#ffcc00'};`;
-                } else if (lt.style === 'box') {
-                    titleStyles = `border-bottom-color: ${lt.color || '#ffcc00'};`;
-                    subStyles = `border-top-color: ${lt.color || '#ffcc00'};`;
-                } else if (lt.style === 'underline') {
-                    h1Styles = `border-bottom: 8px solid ${lt.color || '#ffcc00'};`;
-                }
-
-                if (lt.style === 'underline') {
-                    html = `<div class="z-title" style="${titleStyles}"><h1 style="${h1Styles}">${esc(lt.title)}</h1></div><div class="z-sub" style="${subStyles}">${esc(lt.subtitle)}</div>`;
-                } else {
-                    html = `<div class="z-title" style="${titleStyles}"><div class="z-accent-bar" style="${accentStyles}"></div><h1 style="${h1Styles}">${esc(lt.title)}</h1></div><div class="z-sub" style="${subStyles}">${esc(lt.subtitle)}</div>`;
-                }
+                else if (lt.style === 'neon') { titleStyles = `color: ${lt.color || '#ffcc00'}; box-shadow: 0 0 20px ${lt.color || '#ffcc00'};`; accentStyles = `background: ${lt.color || '#ffcc00'}; box-shadow: 0 0 18px ${lt.color || '#ffcc00'};`; h1Styles = `text-shadow: 0 0 12px ${lt.color || '#ffcc00'};`; subStyles = `color: ${lt.color || '#ffcc00'}; border-color: ${lt.color || '#ffcc00'};`; }
+                else if (lt.style === 'box') { titleStyles = `border-bottom-color: ${lt.color || '#ffcc00'};`; subStyles = `border-top-color: ${lt.color || '#ffcc00'};`; }
+                else if (lt.style === 'underline') { h1Styles = `border-bottom: 8px solid ${lt.color || '#ffcc00'};`; }
+                if (lt.style === 'underline') html = `<div class="z-title" style="${titleStyles}"><h1 style="${h1Styles}">${esc(lt.title)}</h1></div><div class="z-sub" style="${subStyles}">${esc(lt.subtitle)}</div>`;
+                else html = `<div class="z-title" style="${titleStyles}"><div class="z-accent-bar" style="${accentStyles}"></div><h1 style="${h1Styles}">${esc(lt.title)}</h1></div><div class="z-sub" style="${subStyles}">${esc(lt.subtitle)}</div>`;
             }
-
             document.getElementById('z-base-content').innerHTML = html;
-
-            const logoWrap = document.getElementById('watermark-logo');
-            const logoImg = document.getElementById('watermark-img');
+            const logoWrap = document.getElementById('watermark-logo'); const logoImg = document.getElementById('watermark-img');
             if (logo.visible && String(logo.url || '').trim() !== "") {
-                logoWrap.style.display = 'block';
-                logoImg.src = logo.url;
-                logoImg.style.width = (Number(logo.size || 80)) + 'px';
+                logoWrap.style.display = 'block'; logoImg.src = logo.url; logoImg.style.width = (Number(logo.size || 80)) + 'px';
                 logoWrap.style.top = 'auto'; logoWrap.style.bottom = 'auto'; logoWrap.style.left = 'auto'; logoWrap.style.right = 'auto';
                 if (logo.pos === 'tr') { logoWrap.style.top = '40px'; logoWrap.style.right = '40px'; }
                 if (logo.pos === 'tl') { logoWrap.style.top = '40px'; logoWrap.style.left = '40px'; }
                 if (logo.pos === 'br') { logoWrap.style.bottom = '100px'; logoWrap.style.right = '40px'; }
                 if (logo.pos === 'bl') { logoWrap.style.bottom = '100px'; logoWrap.style.left = '40px'; }
-            } else {
-                logoWrap.style.display = 'none';
-            }
-
-            const socWrap = document.getElementById('social-wrap');
-            const socContent = document.getElementById('social-content');
+            } else logoWrap.style.display = 'none';
+            const socWrap = document.getElementById('social-wrap'); const socContent = document.getElementById('social-content');
             if (social.visible) {
-                socWrap.style.display = 'block';
-                socWrap.style.transform = `scale(${(Number(social.size || 100) / 100)})`;
+                socWrap.style.display = 'block'; socWrap.style.transform = `scale(${(Number(social.size || 100) / 100)})`;
                 socContent.className = `soc-pill-main soc-${social.net || 'instagram'}`;
-                let netText = social.net === 'twitter'
-                    ? 'X / TWITTER'
-                    : social.net === 'tiktok'
-                        ? 'TIKTOK'
-                        : String(social.net || 'instagram').toUpperCase();
-                socContent.innerHTML = `
-                    <div class="soc-box">${netText}</div>
-                    <div class="soc-handle"><b>${esc(social.handle)}</b></div>
-                `;
-            } else {
-                socWrap.style.display = 'none';
-            }
-
+                let netText = social.net === 'twitter' ? 'X / TWITTER' : social.net === 'tiktok' ? 'TIKTOK' : String(social.net || 'instagram').toUpperCase();
+                socContent.innerHTML = `<div class="soc-box">${netText}</div><div class="soc-handle"><b>${esc(social.handle)}</b></div>`;
+            } else socWrap.style.display = 'none';
             const tickerUI = document.getElementById('ticker-ui');
-            if (ticker.visible) {
-                tickerUI.style.display = 'flex';
-                document.getElementById('ticker-txt').innerText = ((ticker.text || '') + " • ").repeat(10);
-                document.getElementById('ticker-txt').style.animationDuration = `${Number(ticker.speed || 25)}s`;
-            } else {
-                tickerUI.style.display = 'none';
-            }
-
+            if (ticker.visible) { tickerUI.style.display = 'flex'; document.getElementById('ticker-txt').innerText = ((ticker.text || '') + " • ").repeat(10); document.getElementById('ticker-txt').style.animationDuration = `${Number(ticker.speed || 25)}s`; }
+            else tickerUI.style.display = 'none';
             document.getElementById('live-ui').style.display = bug.showLive ? 'block' : 'none';
             document.getElementById('clock-ui').style.display = bug.showClock ? 'block' : 'none';
         }
 
-        loadWebRTCState();
-        ensureWebRTCElements();
-        layoutWebRTC(false);
+        function toggleZocalo(element) {
+            if (element === 'lt') zState.lt.visible = !zState.lt.visible;
+            if (element === 'ticker') zState.ticker.visible = !zState.ticker.visible;
+            if (element === 'logo') zState.logo.visible = !zState.logo.visible;
+            if (element === 'live') zState.bug.showLive = !zState.bug.showLive;
+            if (element === 'clock') zState.bug.showClock = !zState.bug.showClock;
+            if (element === 'social') zState.social.visible = !zState.social.visible;
+            const btn = document.getElementById('btn-z-' + element); if (btn) btn.classList.toggle('active');
+            updateZocalo();
+        }
+        function bulkZocalo(v) {
+            zState.lt.visible = v; zState.ticker.visible = v; zState.logo.visible = v; zState.bug.showLive = v; zState.bug.showClock = v; zState.social.visible = v;
+            ['lt', 'ticker', 'logo', 'live', 'clock', 'social'].forEach(id => { const btn = document.getElementById('btn-z-' + id); if (btn) { if (v) btn.classList.add('active'); else btn.classList.remove('active'); } });
+            updateZocalo();
+        }
+        function updateZocalo() {
+            zState.lt.title = document.getElementById('z-title').value;
+            zState.lt.subtitle = document.getElementById('z-sub').value;
+            zState.lt.color = document.getElementById('z-color').value;
+            zState.lt.style = document.getElementById('z-style').value;
+            zState.lt.scale = Number(document.getElementById('z-scale').value) || 100;
+            zState.ticker.text = document.getElementById('z-ticker-text').value;
+            zState.ticker.speed = Number(document.getElementById('z-ticker-speed').value) || 25;
+            zState.logo.url = document.getElementById('z-logo-url').value;
+            zState.logo.size = Number(document.getElementById('z-logo-size').value) || 80;
+            zState.logo.pos = document.getElementById('z-logo-pos').value;
+            zState.social.net = document.getElementById('z-soc-net').value;
+            zState.social.handle = document.getElementById('z-soc-handle').value;
+            zState.social.size = Number(document.getElementById('z-soc-size').value) || 100;
+            try { localStorage.setItem(ID_UNICO + '_zstorage', JSON.stringify(zState)); } catch (e) {}
+            client.publish(ID_UNICO, JSON.stringify({ type: 'zocalo_update', data: zState }));
+        }
+        function restoreZState() { try { const raw = localStorage.getItem(ID_UNICO + '_zstorage'); if (!raw) return; const d = JSON.parse(raw); zState = { ...defaultZState(), ...d, lt: { ...defaultZState().lt, ...(d.lt || {}) }, ticker: { ...defaultZState().ticker, ...(d.ticker || {}) }, logo: { ...defaultZState().logo, ...(d.logo || {}) }, bug: { ...defaultZState().bug, ...(d.bug || {}) }, social: { ...defaultZState().social, ...(d.social || {}) } }; } catch (e) {} }
+        restoreZState();
 
-        setInterval(() => {
-            document.getElementById('clock-ui').innerText = new Date().toLocaleTimeString('es-ES', { hour12: false });
-        }, 1000);
+        window.addEventListener('resize', () => { if (webrtcState.visible) renderWebRTC(); });
+        window.addEventListener('focus', () => { if (webrtcState.visible) renderWebRTC(); });
+        window.addEventListener('pageshow', () => { loadSavedData(); loadWebRTCState(); renderWebRTC(); });
+        window.onload = () => { loadSavedData(); loadWebRTCState(); updateClock(); renderWebRTC(); };
     </script>
 </body>
 </html>

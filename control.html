@@ -17,164 +17,850 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-        .section-title { font-size: 14px; font-weight: bold; color: var(--accent); margin-bottom: 15px; text-transform: uppercase; border-left: 3px solid var(--accent); padding-left: 10px; }
+        .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 15px; margin-bottom: 15px; }
 
-        label { display: block; font-size: 11px; color: #8b949e; margin-bottom: 5px; text-transform: uppercase; }
-        input, select { width: 100%; background: #0d1117; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; }
+        .team-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+        .color-group { display: flex; gap: 5px; margin-bottom: 8px; justify-content: center; }
+        input[type="color"] { width: 30px; height: 30px; border: none; border-radius: 4px; background: none; cursor: pointer; padding: 0; }
+
+        input[type="text"], input[type="number"], select, textarea { width: 100%; background: #010409; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; box-sizing: border-box; font-weight: bold; }
+        input[type="text"], input[type="number"] { text-align: center; }
+        input[type="range"] { width: 100%; margin: 8px 0; accent-color: var(--accent); }
+
+        .score-box { font-size: 28px; font-weight: bold; padding: 5px 15px; border-radius: 8px; min-width: 70px; text-align: center; transition: 0.3s; border: 1px solid var(--accent); color: var(--accent); }
+
+        .btn { border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; margin-top: 8px; }
+        .btn-gol { background: #238636; color: white; }
+        .btn-minus { background: #da3633; color: white; }
+        .btn-blue { background: var(--accent); color: white; }
+
+        .switch-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #238636; }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        .action-bar { position: fixed; bottom: 0; width: 100%; display: none; gap: 10px; padding: 15px; background: #0d1117; box-sizing: border-box; border-top: 1px solid var(--border); z-index: 100; }
+        label { font-size: 10px; color: #8b949e; font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; }
+
+        details.section { background: rgba(15,23,42,0.35); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+        details.section summary { cursor: pointer; padding: 14px 16px; font-weight: 900; text-transform: uppercase; font-size: 12px; color: #e2e8f0; background: #161b22; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .section-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; text-align: left; }
 
         .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-z { background: #30363d; border: none; color: white; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-z.active { background: #238636; }
-        .btn-send { background: var(--accent); color: white; width: 100%; padding: 12px; border-radius: 5px; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .btn-z { padding: 10px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; color: white; background: #334155; transition: 0.2s; }
+        .btn-z.active { background: #22c55e; color: #08111f; }
+
+        .input-group { background: #010409; padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
+
+        .preview-card { padding: 0; overflow: hidden; }
+        .preview-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 15px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(31,111,235,0.18), rgba(0,0,0,0)); }
+        .preview-title { font-weight: 900; letter-spacing: 0.4px; text-transform: uppercase; font-size: 12px; }
+        .preview-status { font-size: 11px; color: #8b949e; }
+        .preview-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+        .preview-refresh { font-size: 11px; color: #8b949e; font-weight: 700; white-space: nowrap; }
+        .preview-gear { border: 1px solid var(--border); background: #010409; color: white; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1; }
+        .preview-gear:hover { border-color: var(--accent); }
+        .preview-frame { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; }
+        .preview-frame img { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
+        .preview-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #8b949e; font-size: 12px; pointer-events: none; }
+        .preview-actions { display: flex; gap: 10px; padding: 12px 15px 15px; }
+        .btn-mini { border: 1px solid var(--border); background: #010409; color: white; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; flex: 1; }
+        .btn-mini:hover { border-color: var(--accent); }
+        .preview-note { padding: 0 15px 14px; font-size: 11px; color: #8b949e; line-height: 1.45; }
+
+        .webrtc-panel { display: grid; gap: 12px; }
+        .webrtc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .webrtc-inline { display: flex; gap: 10px; }
+        .webrtc-inline .btn-mini { flex: 1; }
+        .webrtc-status { font-size: 11px; color: #8b949e; line-height: 1.4; }
+        .webrtc-tip { font-size: 11px; color: #a1a1aa; line-height: 1.5; }
+        .webrtc-pos-wrap[disabled] { opacity: 0.45; pointer-events: none; }
+
     </style>
 </head>
 <body>
 
     <div class="tabs">
-        <div class="tab active" onclick="showTab('tab-marcador')">MARCADOR</div>
-        <div class="tab" onclick="showTab('tab-zocalos')">ZÓCALOS</div>
-        <div class="tab" onclick="showTab('tab-crono')">CRONO</div>
-        <div class="tab" onclick="showTab('tab-webrtc')">WEBRTC</div>
+        <div class="tab active" onclick="switchTab(0)">DEPORTES</div>
+        <div class="tab" onclick="switchTab(1)">ZÓCALO</div>
+        <div class="tab" onclick="switchTab(2)">WEBRTC</div>
+        <div class="tab" onclick="switchTab(3)">PLAYLIST</div>
     </div>
 
     <div class="container">
-        <div id="tab-marcador" class="tab-content active">
-            <div class="card">
-                <button class="btn-z" id="btn-score-toggle" onclick="toggleScore()">MARCADOR OCULTO</button>
-                <div class="grid2" style="margin-top:15px">
+
+        <div id="tab-deportes" class="tab-content active">
+            <div class="card preview-card">
+                <div class="preview-head">
                     <div>
-                        <div class="section-title">LOCAL</div>
-                        <label>Nombre</label><input type="text" id="name-a" value="LOCAL">
-                        <label>Logo URL</label><input type="text" id="logo-a">
-                        <label>Goles</label><input type="number" id="score-a" value="0">
+                        <div class="preview-title">PREVIEW ENC1 V3</div>
+                        <div class="preview-status" id="preview-status">Cargando vista previa...</div>
                     </div>
-                    <div>
-                        <div class="section-title">VISITA</div>
-                        <label>Nombre</label><input type="text" id="name-b" value="VISITA">
-                        <label>Logo URL</label><input type="text" id="logo-b">
-                        <label>Goles</label><input type="number" id="score-b" value="0">
+                    <div class="preview-tools">
+                        <div class="preview-refresh">Auto-refresh</div>
+                        <button class="preview-gear" type="button" onclick="setPreviewIP()" title="Cambiar IP del encoder">⚙</button>
                     </div>
                 </div>
-                <button class="btn-send" onclick="updateScore()">ACTUALIZAR MARCADOR</button>
+                <div class="preview-frame">
+                    <img id="mix-preview-img" alt="Vista previa de ENC1 V3">
+                    <div class="preview-fallback" id="preview-fallback">Sin señal de imagen todavía.</div>
+                </div>
+            </div>
+
+            <div class="card">
+
+                <div class="team-row" id="teams-ui-row">
+                    <div id="ui-local">
+                        <div class="color-group">
+                            <input type="color" id="bg-l" value="#0000FF" oninput="updateAll()">
+                            <input type="color" id="txt-l" value="#FFFFFF" oninput="updateAll()">
+                        </div>
+                        <label id="label-l">LOCAL</label>
+                        <input type="text" id="name-l" value="ALIANZA" oninput="updateAll()">
+                        <input type="text" id="logo-l" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
+                    </div>
+
+                    <div style="text-align: center;">
+                        <div class="score-box" id="display-score">0 - 0</div>
+                        <div class="color-group" style="margin-top:8px;">
+                            <input type="color" id="bg-score-global" value="#1f6feb" oninput="updateAll()">
+                            <input type="color" id="txt-score-global" value="#FFFFFF" oninput="updateAll()">
+                        </div>
+                    </div>
+
+                    <div id="ui-visita">
+                        <div class="color-group">
+                            <input type="color" id="bg-v" value="#FFFF00" oninput="updateAll()">
+                            <input type="color" id="txt-v" value="#000000" oninput="updateAll()">
+                        </div>
+                        <label id="label-v">VISITA</label>
+                        <input type="text" id="name-v" value="UNIVERSITARIO" oninput="updateAll()">
+                        <input type="text" id="logo-v" placeholder="+ LOGO URL" style="margin-top:5px; font-size:9px;" oninput="updateAll()">
+                    </div>
+                </div>
+
+                <div class="team-row" style="margin-top:10px;" id="btns-ui-row">
+                    <div id="btns-l">
+                        <button class="btn btn-gol" onclick="changeScore('l', 1)">+ GOL</button>
+                        <button class="btn btn-minus" onclick="changeScore('l', -1)">-1</button>
+                    </div>
+                    <div></div>
+                    <div id="btns-v">
+                        <button class="btn btn-gol" onclick="changeScore('v', 1)">+ GOL</button>
+                        <button class="btn btn-minus" onclick="changeScore('v', -1)">-1</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; text-align: center;">
+                    <div style="flex:1">
+                        <label>TIEMPO BASE</label>
+                        <input type="number" id="limit-min" value="45" oninput="updateAll()">
+                        <div class="color-group" style="margin-top:5px;">
+                            <input type="color" id="bg-clock" value="#1a1a1a" oninput="updateAll()">
+                            <input type="color" id="txt-clock" value="#FFFFFF" oninput="updateAll()">
+                        </div>
+                    </div>
+                    <div style="flex:1">
+                        <label>PERIODO</label>
+                        <div class="switch-container">
+                            <span style="font-size:11px; font-weight:bold;">1T</span>
+                            <label class="switch">
+                                <input type="checkbox" id="period-toggle" onchange="handlePeriodChange()">
+                                <span class="slider"></span>
+                            </label>
+                            <span style="font-size:11px; font-weight:bold;">2T</span>
+                        </div>
+                    </div>
+                    <div style="flex:1">
+                        <label>EXTRA (+MIN)</label>
+                        <input type="number" id="extra-min" value="0" oninput="updateAll()">
+                        <div class="color-group" style="margin-top:5px;">
+                            <input type="color" id="bg-extra" value="#FF0000" oninput="updateAll()">
+                            <input type="color" id="txt-extra" value="#FFFFFF" oninput="updateAll()">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-blue" style="margin-top:15px;" onclick="sendClock('start')">INICIAR / REANUDAR</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn" style="background:#30363d; color:white; flex:1;" onclick="sendClock('stop')">PAUSAR</button>
+                    <button class="btn" style="background:#da3633; color:white; flex:1;" onclick="resetFull()">RESET TOTAL</button>
+                </div>
             </div>
         </div>
 
-        <div id="tab-zocalos" class="tab-content">
-            <div class="card">
-                <button class="btn-z" id="btn-z-lt" onclick="toggleZPart('lt')">ZÓCALO OFF</button>
-                <div style="margin-top:10px">
-                    <label>Título</label><input type="text" id="z-title" value="TEXTO PRINCIPAL">
-                    <label>Subtítulo</label><input type="text" id="z-sub" value="Descripción del evento">
+        <div id="tab-zocalo" class="tab-content">
+            <details class="section" open>
+                <summary><span>CONFIGURACIÓN DE CINTILLO</span></summary>
+                <div class="section-body">
+                    <button class="btn-z" id="btn-z-lt" onclick="toggleZocalo('lt')">MOSTRAR / OCULTAR CINTILLO</button>
+
                     <div class="grid2">
-                        <div><label>Color</label><input type="color" id="z-color" value="#e62020"></div>
-                        <div><label>Escala %</label><input type="number" id="z-scale" value="100"></div>
+                        <div>
+                            <label>ESTILO VISUAL</label>
+                            <select id="z-style" onchange="updateZocalo()">
+                                <option value="tv-sport">📺 TV SPORT (NUEVO)</option>
+                                <option value="modern">MODERN</option>
+                                <option value="glass">GLASS</option>
+                                <option value="neon">NEON</option>
+                                <option value="box">BOX</option>
+                                <option value="ribbon">RIBBON</option>
+                                <option value="clean">CLEAN</option>
+                                <option value="premium">PREMIUM</option>
+                                <option value="capsule">CAPSULE</option>
+                                <option value="underline">UNDERLINE</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>COLOR PRINCIPAL</label>
+                            <input type="color" id="z-color" value="#ffcc00" style="height:38px; width:100%;" oninput="updateZocalo()">
+                        </div>
+                    </div>
+
+                    <label>TÍTULO PRINCIPAL</label>
+                    <input type="text" id="z-title" value="OSCAR ABAD" oninput="updateZocalo()">
+
+                    <label>SUBTÍTULO / CARGO</label>
+                    <input type="text" id="z-sub" value="DIRECTOR TÉCNICO" oninput="updateZocalo()">
+
+                    <div class="input-group">
+                        <label>TAMAÑO DEL CINTILLO</label>
+                        <input type="range" id="z-scale" min="50" max="150" value="100" oninput="updateZocalo()">
                     </div>
                 </div>
-            </div>
-            <div class="card">
-                <div class="grid2">
-                    <button class="btn-z" id="btn-z-ticker" onclick="toggleZPart('ticker')">TICKER OFF</button>
-                    <button class="btn-z" id="btn-z-social" onclick="toggleZPart('social')">SOCIAL OFF</button>
+            </details>
+
+            <details class="section">
+                <summary><span>EXTRAS Y LOGOS</span></summary>
+                <div class="section-body">
+                    <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                        <button class="btn-z active" id="btn-z-live" onclick="toggleZocalo('live')">VIVO</button>
+                        <button class="btn-z active" id="btn-z-clock" onclick="toggleZocalo('clock')">RELOJ</button>
+                        <button class="btn-z" id="btn-z-logo" onclick="toggleZocalo('logo')">LOGOTIPO</button>
+                        <button class="btn-z" id="btn-z-social" onclick="toggleZocalo('social')">RED SOCIAL</button>
+                    </div>
+
+                    <div class="input-group" style="margin-top: 10px;">
+                        <label style="color:#fff;">CONFIGURACIÓN DE LOGOTIPO</label>
+                        <input type="text" id="z-logo-url" placeholder="URL LOGO IMAGEN" oninput="updateZocalo()" style="margin-bottom:8px;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <div>
+                                <label>TAMAÑO LOGO</label>
+                                <input type="range" id="z-logo-size" min="30" max="250" value="80" oninput="updateZocalo()">
+                            </div>
+                            <div>
+                                <label>POSICIÓN</label>
+                                <select id="z-logo-pos" onchange="updateZocalo()">
+                                    <option value="tr">Sup. Derecho</option>
+                                    <option value="tl">Sup. Izquierdo</option>
+                                    <option value="br">Inf. Derecho</option>
+                                    <option value="bl">Inf. Izquierdo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label style="color:#fff;">CONFIGURACIÓN DE RED SOCIAL</label>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <div>
+                                <label>RED SOCIAL</label>
+                                <select id="z-soc-net" onchange="updateZocalo()">
+                                    <option value="instagram">Instagram</option>
+                                    <option value="twitter">X / Twitter</option>
+                                    <option value="youtube">YouTube</option>
+                                    <option value="facebook">Facebook</option>
+                                    <option value="tiktok">TikTok</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>USUARIO</label>
+                                <input type="text" id="z-soc-handle" value="@usuario" oninput="updateZocalo()">
+                            </div>
+                        </div>
+                        <div>
+                            <label>TAMAÑO DE REDES</label>
+                            <input type="range" id="z-soc-size" min="50" max="150" value="100" oninput="updateZocalo()">
+                        </div>
+                    </div>
                 </div>
-                <div style="margin-top:10px">
-                    <label>Texto Ticker</label><input type="text" id="z-ticker-text" placeholder="Noticias...">
-                    <label>Red Social</label>
-                    <select id="z-soc-net"><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="twitter">X (Twitter)</option></select>
-                    <input type="text" id="z-soc-handle" placeholder="@usuario">
+            </details>
+
+            <details class="section">
+                <summary><span>NOTICIAS (CRAWL)</span></summary>
+                <div class="section-body">
+                    <button class="btn-z" id="btn-z-ticker" onclick="toggleZocalo('ticker')">ACTIVAR TICKER</button>
+                    <textarea id="z-ticker-text" rows="3" oninput="updateZocalo()">ÚLTIMO MINUTO: Bienvenidos a la transmisión oficial...</textarea>
+                    <div class="input-group">
+                        <label>VELOCIDAD DEL TEXTO (Rápido -> Lento)</label>
+                        <input type="range" id="z-ticker-speed" min="5" max="60" value="25" oninput="updateZocalo()">
+                    </div>
                 </div>
-            </div>
-            <div class="card">
-                <div class="grid2">
-                    <button class="btn-z" id="btn-z-bug-live" onclick="toggleZPart('bug-live')">LIVE OFF</button>
-                    <button class="btn-z" id="btn-z-bug-clock" onclick="toggleZPart('bug-clock')">RELOJ OFF</button>
-                </div>
-            </div>
-            <button class="btn-send" onclick="updateZocalo()">ENVIAR TODO</button>
+            </details>
         </div>
 
-        <div id="tab-crono" class="tab-content">
-            <div class="card">
-                <div style="font-size: 40px; text-align: center; margin-bottom: 20px;" id="crono-display">00:00</div>
-                <div class="grid2">
-                    <button class="btn-send" onclick="startTimer()" style="background:#238636">INICIAR</button>
-                    <button class="btn-send" onclick="stopTimer()" style="background:#da3633">PARAR</button>
-                </div>
-                <button class="btn-send" onclick="resetTimer()" style="background:#30363d">RESETEAR (00:00)</button>
-            </div>
-        </div>
-
+        
         <div id="tab-webrtc" class="tab-content">
             <div class="card">
-                <div class="section-title">CONTROL WEBRTC</div>
-                <label>Link de Video (WebRTC / VDO.ninja / WHEP)</label>
-                <input type="text" id="w-url" placeholder="https://vdo.ninja/?v=room123..." oninput="updateWebRTCState()">
-                
-                <label>Posicionamiento en Pantalla</label>
-                <select id="w-layout" onchange="updateWebRTCState()">
-                    <option value="fullscreen">PANTALLA COMPLETA (Fondo)</option>
-                    <option value="pip-tr">PICTURE IN PICTURE (Sup. Derecha)</option>
-                    <option value="pip-tl">PICTURE IN PICTURE (Sup. Izquierda)</option>
-                    <option value="pip-br">PICTURE IN PICTURE (Inf. Derecha)</option>
-                    <option value="pip-bl">PICTURE IN PICTURE (Inf. Izquierda)</option>
-                </select>
+                <div class="preview-head" style="margin:-15px -15px 15px; border-radius:12px 12px 0 0;">
+                    <div>
+                        <div class="preview-title">WEBRTC / VDO.NINJA</div>
+                        <div class="preview-status" id="webrtc-status">Sin señal activa.</div>
+                    </div>
+                    <div class="preview-tools">
+                        <div class="preview-refresh">MQTT</div>
+                    </div>
+                </div>
 
-                <button class="btn-send" id="btn-w-toggle" onclick="toggleWebRTC()" style="background: #30363d;">MOSTRAR TRANSMISIÓN</button>
+                <div class="webrtc-panel">
+                    <div>
+                        <label>LINK WEBRTC</label>
+                        <textarea id="webrtc-url" rows="3" placeholder="Pega aquí el link de VDO.Ninja o cualquier link de video" oninput="updateWebRTC()"></textarea>
+                        <div class="webrtc-tip" style="margin-top:6px;">El enlace se guarda localmente y se vuelve a cargar al abrir el panel.</div>
+                    </div>
+
+                    <div class="webrtc-row">
+                        <div>
+                            <label>MODO</label>
+                            <select id="webrtc-mode" onchange="handleWebRTCModeChange()">
+                                <option value="fullscreen">PANTALLA COMPLETA</option>
+                                <option value="pip">PICTURE IN PICTURE</option>
+                            </select>
+                        </div>
+                        <div id="webrtc-pos-wrap">
+                            <label>POSICIÓN PIP</label>
+                            <select id="webrtc-pos" onchange="updateWebRTC()">
+                                <option value="tr">SUP. DERECHA</option>
+                                <option value="tl">SUP. IZQUIERDA</option>
+                                <option value="br">INF. DERECHA</option>
+                                <option value="bl">INF. IZQUIERDA</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="webrtc-inline">
+                        <button class="btn-mini" type="button" onclick="sendWebRTC('show')">MOSTRAR</button>
+                        <button class="btn-mini" type="button" onclick="sendWebRTC('hide')">OCULTAR</button>
+                    </div>
+
+                    <div class="webrtc-status">
+                        Al pulsar MOSTRAR, el enlace se envía por MQTT y aparece en <b>index.html</b>. Los cambios de posición se aplican en vivo.
+                    </div>
+                </div>
             </div>
         </div>
 
+        <div id="tab-playlist" class="tab-content"><div class="card">Próximamente...</div></div>
+    </div>
+
+    <div class="action-bar" id="sports-actions" style="display:flex;">
+        <button class="btn btn-gol" style="flex:1" onclick="sendUI('show')">MOSTRAR MARCADOR</button>
+        <button class="btn btn-minus" style="flex:1" onclick="sendUI('hide')">OCULTAR MARCADOR</button>
+    </div>
+
+    <div class="action-bar" id="zocalo-actions" style="display:none;">
+        <button class="btn btn-gol" style="flex:1" onclick="bulkZocalo(true)">MOSTRAR ZÓCALOS</button>
+        <button class="btn btn-minus" style="flex:1" onclick="bulkZocalo(false)">OCULTAR ZÓCALOS</button>
     </div>
 
     <script>
-        const ID_UNICO = "SISTEMA_PRO_2024";
-        const client = mqtt.connect('wss://test.mosquitto.org:8081');
+        const ID_UNICO = "marcador_oscar_pro_2024";
+        const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
 
-        let scoreState = { visible: false, teamA: { name: "LOCAL", score: 0, logo: "" }, teamB: { name: "VISITA", score: 0, logo: "" } };
-        let zState = { 
-            lt: { visible: false, title: "", subtitle: "", color: "#e62020", scale: 100 },
-            ticker: { visible: false, text: "", speed: 25 },
-            logo: { url: "" },
-            social: { visible: false, net: "instagram", handle: "" },
-            bug: { showLive: false, showClock: false }
-        };
-        let wState = { visible: false, url: "", layout: "fullscreen" };
+        let state = { scoreL: 0, scoreV: 0 };
 
-        let timerSeconds = 0, timerInterval = null;
-
-        function showTab(id) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
+        function defaultZState() {
+            return {
+                lt: { visible: false, title: "OSCAR ABAD", subtitle: "DIRECTOR TÉCNICO", color: "#ffcc00", scale: 100, style: "tv-sport" },
+                ticker: { visible: false, text: "ÚLTIMO MINUTO: Bienvenidos a la transmisión oficial...", speed: 25 },
+                logo: { visible: false, url: "", size: 80, pos: "tr" },
+                bug: { showLive: true, showClock: true },
+                social: { visible: false, net: "instagram", handle: "@usuario", size: 100 }
+            };
         }
 
-        // --- LÓGICA MARCADOR ---
-        function toggleScore() {
-            scoreState.visible = !scoreState.visible;
-            const btn = document.getElementById('btn-score-toggle');
-            btn.innerText = scoreState.visible ? "MARCADOR VISIBLE" : "MARCADOR OCULTO";
-            btn.classList.toggle('active', scoreState.visible);
-            updateScore();
+        let zState = defaultZState();
+
+        function defaultWebRTCState() {
+            return {
+                visible: false,
+                url: "",
+                mode: "pip",
+                position: "tr"
+            };
         }
 
-        function updateScore() {
-            scoreState.teamA = { name: document.getElementById('name-a').value, score: document.getElementById('score-a').value, logo: document.getElementById('logo-a').value };
-            scoreState.teamB = { name: document.getElementById('name-b').value, score: document.getElementById('score-b').value, logo: document.getElementById('logo-b').value };
-            client.publish(ID_UNICO, JSON.stringify({ type: 'score_update', data: scoreState }));
+        let webrtcState = defaultWebRTCState();
+        const WEBRTC_STORAGE_KEY = ID_UNICO + '_webrtc_storage';
+
+        const DEFAULT_PREVIEW_SNAPSHOT_BASE = 'http://192.168.1.75/snap/snap9.jpg';
+        const PREVIEW_REFRESH_MS = 1500;
+        const PREVIEW_STORAGE_KEY = ID_UNICO + '_preview_snapshot_base';
+        const PREVIEW_URL_PARAM = 'preview_ip';
+        let PREVIEW_SNAPSHOT_BASE = DEFAULT_PREVIEW_SNAPSHOT_BASE;
+        let previewTimer = null;
+        let previewRetryTimer = null;
+        let previewRequestSeq = 0;
+
+        function normalizePreviewBase(value) {
+            let raw = String(value ?? '').trim();
+            if (!raw) return '';
+            raw = raw.replace(/\/+$/, '');
+            if (/^https?:\/\//i.test(raw)) {
+                return raw + '/snap/snap9.jpg';
+            }
+            return `http://${raw}/snap/snap9.jpg`;
+        }
+
+        function getPreviewBaseFromUrl() {
+            try {
+                const url = new URL(window.location.href);
+                const raw = url.searchParams.get(PREVIEW_URL_PARAM);
+                return raw ? normalizePreviewBase(raw) : '';
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function syncPreviewBaseToUrl(rawValue) {
+            try {
+                const url = new URL(window.location.href);
+                const clean = String(rawValue ?? '').trim();
+                if (clean) url.searchParams.set(PREVIEW_URL_PARAM, clean);
+                else url.searchParams.delete(PREVIEW_URL_PARAM);
+                history.replaceState({}, '', url.toString());
+            } catch (e) {
+                /* No-op */
+            }
+        }
+
+        function setPreviewBase(rawValue, persistUrl = true, persistMainStorage = true) {
+            const base = normalizePreviewBase(rawValue);
+            if (!base) return false;
+
+            PREVIEW_SNAPSHOT_BASE = base;
+            localStorage.setItem(PREVIEW_STORAGE_KEY, PREVIEW_SNAPSHOT_BASE);
+
+            if (persistUrl) syncPreviewBaseToUrl(rawValue);
+            if (persistMainStorage) saveData();
+            refreshPreview(true);
+            return true;
+        }
+
+        function setPreviewIP() {
+            const current = PREVIEW_SNAPSHOT_BASE
+                .replace(/\/snap\/snap9\.jpg(?:\?.*)?$/i, '')
+                .replace(/^https?:\/\//i, '');
+            const input = prompt('Ingresa la IP o URL base del encoder:', current);
+            if (input === null) return;
+
+            if (!setPreviewBase(input, true, true)) {
+                alert('Debes ingresar una IP válida.');
+            }
+        }
+
+        function refreshPreview(manual = false) {
+            const img = document.getElementById('mix-preview-img');
+            const status = document.getElementById('preview-status');
+            const fallback = document.getElementById('preview-fallback');
+            if (!img || !status || !fallback) return;
+
+            clearTimeout(previewRetryTimer);
+
+            if (manual) status.innerText = 'Actualizando preview...';
+            else status.innerText = 'Actualización automática activa';
+
+            const cacheBust = `${Date.now()}-${++previewRequestSeq}`;
+            const snapshotUrl = `${PREVIEW_SNAPSHOT_BASE}?rnd=${cacheBust}`;
+
+            img.onload = () => {
+                fallback.style.display = 'none';
+                status.innerText = 'Preview en vivo';
+            };
+            img.onerror = () => {
+                fallback.style.display = 'flex';
+                status.innerText = 'No se pudo cargar la imagen';
+                previewRetryTimer = setTimeout(() => refreshPreview(false), 5000);
+            };
+            img.src = snapshotUrl;
+        }
+
+        function startPreviewLoop() {
+            refreshPreview(false);
+            if (previewTimer) clearInterval(previewTimer);
+            previewTimer = setInterval(() => refreshPreview(false), PREVIEW_REFRESH_MS);
+        }
+
+        function restorePreviewBaseFromStorage() {
+            const urlBase = getPreviewBaseFromUrl();
+            if (urlBase) {
+                PREVIEW_SNAPSHOT_BASE = urlBase;
+                localStorage.setItem(PREVIEW_STORAGE_KEY, PREVIEW_SNAPSHOT_BASE);
+                return;
+            }
+
+            const stored = localStorage.getItem(PREVIEW_STORAGE_KEY);
+            if (stored) {
+                PREVIEW_SNAPSHOT_BASE = stored;
+                syncPreviewBaseToUrl(stored.replace(/\/snap\/snap9\.jpg(?:\?.*)?$/i, '').replace(/^https?:\/\//i, ''));
+                return;
+            }
+
+            PREVIEW_SNAPSHOT_BASE = DEFAULT_PREVIEW_SNAPSHOT_BASE;
+        }
+
+        window.addEventListener('focus', () => startPreviewLoop());
+        window.addEventListener('online', () => startPreviewLoop());
+        window.addEventListener('pageshow', () => startPreviewLoop());
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) startPreviewLoop();
+        });
+
+
+
+        function syncWebRTCUI() {
+            const mode = document.getElementById('webrtc-mode').value;
+            const posWrap = document.getElementById('webrtc-pos-wrap');
+            const posSelect = document.getElementById('webrtc-pos');
+            const isPip = mode === 'pip';
+            posWrap.classList.toggle('webrtc-pos-wrap', true);
+            posWrap.toggleAttribute('disabled', !isPip);
+            posSelect.disabled = !isPip;
+        }
+
+        function saveWebRTCState() {
+            localStorage.setItem(WEBRTC_STORAGE_KEY, JSON.stringify(webrtcState));
             saveData();
         }
 
-        // --- LÓGICA ZÓCALOS ---
-        function toggleZPart(part) {
-            if(part==='lt') zState.lt.visible = !zState.lt.visible;
-            if(part==='ticker') zState.ticker.visible = !zState.ticker.visible;
-            if(part==='social') zState.social.visible = !zState.social.visible;
-            if(part==='bug-live') zState.bug.showLive = !zState.bug.showLive;
-            if(part==='bug-clock') zState.bug.showClock = !zState.bug.showClock;
-            
-            const btns = { lt:'btn-z-lt', ticker:'btn-z-ticker', social:'btn-z-social', 'bug-live':'btn-z-bug-live', 'bug-clock':'btn-z-bug-clock' };
-            const btn = document.getElementById(btns[part]);
-            btn.classList.toggle('active');
+        function updateWebRTC(publish = true) {
+            const url = document.getElementById('webrtc-url').value.trim();
+            const mode = document.getElementById('webrtc-mode').value;
+            const position = document.getElementById('webrtc-pos').value;
+
+            webrtcState.url = url;
+            webrtcState.mode = mode === 'fullscreen' ? 'fullscreen' : 'pip';
+            webrtcState.position = ['tr', 'tl', 'br', 'bl'].includes(position) ? position : 'tr';
+
+            if (webrtcState.mode === 'fullscreen') {
+                webrtcState.position = 'tr';
+            }
+
+            document.getElementById('webrtc-status').innerText = url
+                ? (webrtcState.visible ? 'Transmisión activa y sincronizada.' : 'Enlace listo para mostrarse.')
+                : 'Sin señal activa.';
+
+            saveWebRTCState();
+
+            if (publish) {
+                client.publish(ID_UNICO, JSON.stringify({ type: 'webrtc_update', data: webrtcState }), { retain: true });
+            }
+        }
+
+        function sendWebRTC(action) {
+            webrtcState.visible = action === 'show';
+            updateWebRTC(true);
+            document.getElementById('webrtc-status').innerText = action === 'show'
+                ? 'Mostrando en index.html.'
+                : 'Oculto en index.html.';
+            saveWebRTCState();
+            client.publish(ID_UNICO, JSON.stringify({ type: 'webrtc_control', data: { action } }));
+            client.publish(ID_UNICO, JSON.stringify({ type: 'webrtc_update', data: webrtcState }), { retain: true });
+        }
+
+        function handleWebRTCModeChange() {
+            syncWebRTCUI();
+            updateWebRTC(true);
+        }
+
+        function restoreWebRTCState() {
+            const saved = localStorage.getItem(WEBRTC_STORAGE_KEY);
+            if (!saved) {
+                syncWebRTCUI();
+                updateWebRTC(false);
+                return;
+            }
+
+            try {
+                const d = JSON.parse(saved);
+                webrtcState = {
+                    ...defaultWebRTCState(),
+                    ...d
+                };
+
+                document.getElementById('webrtc-url').value = webrtcState.url || '';
+                document.getElementById('webrtc-mode').value = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
+                document.getElementById('webrtc-pos').value = ['tr', 'tl', 'br', 'bl'].includes(webrtcState.position) ? webrtcState.position : 'tr';
+                syncWebRTCUI();
+                updateWebRTC(false);
+
+                document.getElementById('webrtc-status').innerText = webrtcState.url
+                    ? (webrtcState.visible ? 'Estado restaurado y listo.' : 'Configuración restaurada.')
+                    : 'Sin señal activa.';
+            } catch (e) {
+                syncWebRTCUI();
+                updateWebRTC(false);
+            }
+        }
+        client.on('connect', () => {
+            console.log("Conectado a MQTT");
+            client.subscribe(ID_UNICO);
+            updateAll();
+            updateZocalo();
+            updateWebRTC(false);
+            if (webrtcState.visible) {
+                client.publish(ID_UNICO, JSON.stringify({ type: 'webrtc_control', data: { action: 'show' } }));
+            }
+        });
+
+        window.onload = () => {
+            restorePreviewBaseFromStorage();
+            loadSavedData();
+            restoreWebRTCState();
+            updateScoreDisplay();
+            updateAll();
+            updateZocalo();
+            startPreviewLoop();
+        };
+
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+            contents.forEach((c, i) => c.classList.toggle('active', i === index));
+            document.getElementById('sports-actions').style.display = index === 0 ? 'flex' : 'none';
+            document.getElementById('zocalo-actions').style.display = index === 1 ? 'flex' : 'none';
+        }
+
+        function mergeZState(base, incoming) {
+            return {
+                ...base,
+                ...incoming,
+                lt: { ...base.lt, ...(incoming?.lt || {}) },
+                ticker: { ...base.ticker, ...(incoming?.ticker || {}) },
+                logo: { ...base.logo, ...(incoming?.logo || {}) },
+                bug: { ...base.bug, ...(incoming?.bug || {}) },
+                social: { ...base.social, ...(incoming?.social || {}) }
+            };
+        }
+
+        function saveData() {
+            const currentData = {
+                scoreL: state.scoreL,
+                scoreV: state.scoreV,
+                nameL: document.getElementById('name-l').value,
+                nameV: document.getElementById('name-v').value,
+                logoL: document.getElementById('logo-l').value,
+                logoV: document.getElementById('logo-v').value,
+                bgL: document.getElementById('bg-l').value,
+                txtL: document.getElementById('txt-l').value,
+                bgV: document.getElementById('bg-v').value,
+                txtV: document.getElementById('txt-v').value,
+                bgScore: document.getElementById('bg-score-global').value,
+                txtScore: document.getElementById('txt-score-global').value,
+                bgClock: document.getElementById('bg-clock').value,
+                txtClock: document.getElementById('txt-clock').value,
+                bgExtra: document.getElementById('bg-extra').value,
+                txtExtra: document.getElementById('txt-extra').value,
+                limit: document.getElementById('limit-min').value,
+                extra: document.getElementById('extra-min').value,
+                period: document.getElementById('period-toggle').checked,
+                zState: zState,
+                previewBase: PREVIEW_SNAPSHOT_BASE,
+                webrtcState: webrtcState
+            };
+            localStorage.setItem(ID_UNICO + '_storage', JSON.stringify(currentData));
+        }
+
+        function loadSavedData() {
+            const saved = localStorage.getItem(ID_UNICO + '_storage');
+            if (!saved) return;
+
+            const d = JSON.parse(saved);
+
+            state.scoreL = d.scoreL ?? 0;
+            state.scoreV = d.scoreV ?? 0;
+
+            document.getElementById('name-l').value = d.nameL ?? document.getElementById('name-l').value;
+            document.getElementById('name-v').value = d.nameV ?? document.getElementById('name-v').value;
+            document.getElementById('logo-l').value = d.logoL ?? "";
+            document.getElementById('logo-v').value = d.logoV ?? "";
+            document.getElementById('bg-l').value = d.bgL ?? "#0000FF";
+            document.getElementById('txt-l').value = d.txtL ?? "#FFFFFF";
+            document.getElementById('bg-v').value = d.bgV ?? "#FFFF00";
+            document.getElementById('txt-v').value = d.txtV ?? "#000000";
+            document.getElementById('bg-score-global').value = d.bgScore ?? "#1f6feb";
+            document.getElementById('txt-score-global').value = d.txtScore ?? "#FFFFFF";
+            document.getElementById('bg-clock').value = d.bgClock ?? "#1a1a1a";
+            document.getElementById('txt-clock').value = d.txtClock ?? "#FFFFFF";
+            document.getElementById('bg-extra').value = d.bgExtra ?? "#FF0000";
+            document.getElementById('txt-extra').value = d.txtExtra ?? "#FFFFFF";
+            document.getElementById('limit-min').value = d.limit ?? 45;
+            document.getElementById('extra-min').value = d.extra ?? 0;
+            document.getElementById('period-toggle').checked = !!d.period;
+
+            if (d.previewBase) {
+                setPreviewBase(d.previewBase.replace(/\/snap\/snap9\.jpg(?:\?.*)?$/i, '').replace(/^https?:\/\//i, ''), false, false);
+            }
+
+            if (d.webrtcState) {
+                webrtcState = { ...defaultWebRTCState(), ...d.webrtcState };
+                document.getElementById('webrtc-url').value = webrtcState.url ?? '';
+                document.getElementById('webrtc-mode').value = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
+                document.getElementById('webrtc-pos').value = ['tr', 'tl', 'br', 'bl'].includes(webrtcState.position) ? webrtcState.position : 'tr';
+                syncWebRTCUI();
+                document.getElementById('webrtc-status').innerText = webrtcState.url ? (webrtcState.visible ? 'Estado restaurado y listo.' : 'Configuración restaurada.') : 'Sin señal activa.';
+            }
+
+            if (d.zState) {
+                zState = mergeZState(defaultZState(), d.zState);
+
+                document.getElementById('z-title').value = zState.lt.title ?? "";
+                document.getElementById('z-sub').value = zState.lt.subtitle ?? "";
+                document.getElementById('z-style').value = zState.lt.style ?? "tv-sport";
+                document.getElementById('z-color').value = zState.lt.color ?? "#ffcc00";
+                document.getElementById('z-scale').value = zState.lt.scale ?? 100;
+
+                document.getElementById('z-ticker-text').value = zState.ticker.text ?? "";
+                document.getElementById('z-ticker-speed').value = zState.ticker.speed ?? 25;
+
+                document.getElementById('z-logo-url').value = zState.logo.url ?? "";
+                document.getElementById('z-logo-size').value = zState.logo.size ?? 80;
+                document.getElementById('z-logo-pos').value = zState.logo.pos ?? "tr";
+
+                document.getElementById('z-soc-net').value = zState.social.net ?? "instagram";
+                document.getElementById('z-soc-handle').value = zState.social.handle ?? "@usuario";
+                document.getElementById('z-soc-size').value = zState.social.size ?? 100;
+
+                document.getElementById('btn-z-lt').classList.toggle('active', !!zState.lt.visible);
+                document.getElementById('btn-z-ticker').classList.toggle('active', !!zState.ticker.visible);
+                document.getElementById('btn-z-logo').classList.toggle('active', !!zState.logo.visible);
+                document.getElementById('btn-z-live').classList.toggle('active', !!zState.bug.showLive);
+                document.getElementById('btn-z-clock').classList.toggle('active', !!zState.bug.showClock);
+                document.getElementById('btn-z-social').classList.toggle('active', !!zState.social.visible);
+            }
+
+            updateScoreDisplay();
+            handlePeriodChange(true);
+        }
+
+        function changeScore(team, val) {
+            if (team === 'l') state.scoreL = Math.max(0, state.scoreL + val);
+            if (team === 'v') state.scoreV = Math.max(0, state.scoreV + val);
+            updateScoreDisplay();
+            updateAll();
+        }
+
+        function updateScoreDisplay() {
+            const is2T = document.getElementById('period-toggle').checked;
+            const scoreLabel = is2T ? `${state.scoreV} - ${state.scoreL}` : `${state.scoreL} - ${state.scoreV}`;
+            const display = document.getElementById('display-score');
+            display.innerText = scoreLabel;
+            display.style.backgroundColor = document.getElementById('bg-score-global').value;
+            display.style.color = document.getElementById('txt-score-global').value;
+            display.style.borderColor = document.getElementById('txt-score-global').value;
+        }
+
+        function handlePeriodChange(isLoad = false) {
+            const is2T = document.getElementById('period-toggle').checked;
+            const rowTeams = document.getElementById('teams-ui-row');
+            const rowBtns = document.getElementById('btns-ui-row');
+
+            if (is2T) {
+                rowTeams.style.flexDirection = 'row-reverse';
+                rowBtns.style.flexDirection = 'row-reverse';
+                document.getElementById('label-l').innerText = "VISITA (2T)";
+                document.getElementById('label-v').innerText = "LOCAL (2T)";
+            } else {
+                rowTeams.style.flexDirection = 'row';
+                rowBtns.style.flexDirection = 'row';
+                document.getElementById('label-l').innerText = "LOCAL";
+                document.getElementById('label-v').innerText = "VISITA";
+            }
+
+            if (!isLoad) sendClock('reset');
+            updateScoreDisplay();
+            updateAll();
+        }
+
+        function resetFull() {
+            if (confirm("¿Deseas resetear todo el marcador y la memoria?")) {
+                localStorage.removeItem(ID_UNICO + '_storage');
+                location.reload();
+            }
+        }
+
+        function updateAll() {
+            const is2T = document.getElementById('period-toggle').checked;
+            let data = {
+                nameL: is2T ? document.getElementById('name-v').value : document.getElementById('name-l').value,
+                nameV: is2T ? document.getElementById('name-l').value : document.getElementById('name-v').value,
+                scoreL: is2T ? state.scoreV : state.scoreL,
+                scoreV: is2T ? state.scoreL : state.scoreV,
+                logoL: is2T ? document.getElementById('logo-v').value : document.getElementById('logo-l').value,
+                logoV: is2T ? document.getElementById('logo-l').value : document.getElementById('logo-v').value,
+                bgL: is2T ? document.getElementById('bg-v').value : document.getElementById('bg-l').value,
+                txtL: is2T ? document.getElementById('txt-v').value : document.getElementById('txt-l').value,
+                bgV: is2T ? document.getElementById('bg-l').value : document.getElementById('bg-v').value,
+                txtV: is2T ? document.getElementById('txt-l').value : document.getElementById('txt-v').value,
+                bgScore: document.getElementById('bg-score-global').value,
+                txtScore: document.getElementById('txt-score-global').value,
+                limit: document.getElementById('limit-min').value,
+                extra: document.getElementById('extra-min').value,
+                periodText: is2T ? "2T" : "1T",
+                bgClock: document.getElementById('bg-clock').value,
+                txtClock: document.getElementById('txt-clock').value,
+                bgExtra: document.getElementById('bg-extra').value,
+                txtExtra: document.getElementById('txt-extra').value
+            };
+
+            client.publish(ID_UNICO, JSON.stringify({ type: 'update_info', data: data }));
+            updateScoreDisplay();
+            saveData();
+        }
+
+        function sendClock(cmd) {
+            client.publish(ID_UNICO, JSON.stringify({ type: 'control_clock', data: { command: cmd } }));
+        }
+
+        function sendUI(action) {
+            client.publish(ID_UNICO, JSON.stringify({ type: 'control_ui', data: { action: action } }));
+        }
+
+        function toggleZocalo(element) {
+            if (element === 'lt') zState.lt.visible = !zState.lt.visible;
+            if (element === 'ticker') zState.ticker.visible = !zState.ticker.visible;
+            if (element === 'logo') zState.logo.visible = !zState.logo.visible;
+            if (element === 'live') zState.bug.showLive = !zState.bug.showLive;
+            if (element === 'clock') zState.bug.showClock = !zState.bug.showClock;
+            if (element === 'social') zState.social.visible = !zState.social.visible;
+
+            const btn = document.getElementById('btn-z-' + element);
+            if (btn) btn.classList.toggle('active');
+
+            updateZocalo();
+        }
+
+        function bulkZocalo(v) {
+            zState.lt.visible = v;
+            zState.ticker.visible = v;
+            zState.logo.visible = v;
+            zState.bug.showLive = v;
+            zState.bug.showClock = v;
+            zState.social.visible = v;
+
+            ['lt', 'ticker', 'logo', 'live', 'clock', 'social'].forEach(id => {
+                const btn = document.getElementById('btn-z-' + id);
+                if (btn) {
+                    if (v) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+
             updateZocalo();
         }
 
@@ -182,80 +868,23 @@
             zState.lt.title = document.getElementById('z-title').value;
             zState.lt.subtitle = document.getElementById('z-sub').value;
             zState.lt.color = document.getElementById('z-color').value;
-            zState.lt.scale = document.getElementById('z-scale').value;
+            zState.lt.style = document.getElementById('z-style').value;
+            zState.lt.scale = Number(document.getElementById('z-scale').value) || 100;
+
             zState.ticker.text = document.getElementById('z-ticker-text').value;
+            zState.ticker.speed = Number(document.getElementById('z-ticker-speed').value) || 25;
+
+            zState.logo.url = document.getElementById('z-logo-url').value;
+            zState.logo.size = Number(document.getElementById('z-logo-size').value) || 80;
+            zState.logo.pos = document.getElementById('z-logo-pos').value;
+
             zState.social.net = document.getElementById('z-soc-net').value;
             zState.social.handle = document.getElementById('z-soc-handle').value;
+            zState.social.size = Number(document.getElementById('z-soc-size').value) || 100;
+
             client.publish(ID_UNICO, JSON.stringify({ type: 'zocalo_update', data: zState }));
             saveData();
         }
-
-        // --- LÓGICA WEBRTC ---
-        function toggleWebRTC() {
-            wState.visible = !wState.visible;
-            const btn = document.getElementById('btn-w-toggle');
-            if (wState.visible) {
-                btn.innerText = "OCULTAR TRANSMISIÓN";
-                btn.style.background = "#da3633";
-            } else {
-                btn.innerText = "MOSTRAR TRANSMISIÓN";
-                btn.style.background = "#238636";
-            }
-            updateWebRTCState();
-        }
-
-        function updateWebRTCState() {
-            wState.url = document.getElementById('w-url').value;
-            wState.layout = document.getElementById('w-layout').value;
-            client.publish(ID_UNICO, JSON.stringify({ type: 'webrtc_update', data: wState }));
-            saveData();
-        }
-
-        // --- LÓGICA CRONO ---
-        function startTimer() { if(!timerInterval) timerInterval = setInterval(() => { timerSeconds++; sendTimer(); }, 1000); }
-        function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
-        function resetTimer() { stopTimer(); timerSeconds = 0; sendTimer(); }
-        function sendTimer() {
-            const m = Math.floor(timerSeconds/60).toString().padStart(2,'0');
-            const s = (timerSeconds%60).toString().padStart(2,'0');
-            const timeStr = `${m}:${s}`;
-            document.getElementById('crono-display').innerText = timeStr;
-            client.publish(ID_UNICO, JSON.stringify({ type: 'timer_update', data: { time: timeStr } }));
-        }
-
-        // --- PERSISTENCIA ---
-        function saveData() {
-            const data = { scoreState, zState, wState };
-            localStorage.setItem('SISTEMA_DATA', JSON.stringify(data));
-        }
-
-        function loadData() {
-            const saved = localStorage.getItem('SISTEMA_DATA');
-            if (saved) {
-                const { scoreState: s, zState: z, wState: w } = JSON.parse(saved);
-                if(s) {
-                    document.getElementById('name-a').value = s.teamA.name;
-                    document.getElementById('score-a').value = s.teamA.score;
-                    document.getElementById('logo-a').value = s.teamA.logo;
-                    document.getElementById('name-b').value = s.teamB.name;
-                    document.getElementById('score-b').value = s.teamB.score;
-                    document.getElementById('logo-b').value = s.teamB.logo;
-                }
-                if(z) {
-                    document.getElementById('z-title').value = z.lt.title;
-                    document.getElementById('z-sub').value = z.lt.subtitle;
-                    document.getElementById('z-color').value = z.lt.color;
-                    document.getElementById('z-ticker-text').value = z.ticker.text;
-                    document.getElementById('z-soc-handle').value = z.social.handle;
-                }
-                if(w) {
-                    document.getElementById('w-url').value = w.url || "";
-                    document.getElementById('w-layout').value = w.layout || "fullscreen";
-                }
-            }
-        }
-
-        window.onload = loadData;
     </script>
 </body>
 </html>

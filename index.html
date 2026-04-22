@@ -189,6 +189,8 @@
         client.on('connect', () => client.subscribe(ID_UNICO));
         client.on('message', (topic, message) => {
             const { type, data } = JSON.parse(message.toString());
+            const payload = { type, data };
+
             if (type === 'update_info') applyUpdate(data);
             if (type === 'control_ui') {
                 if (data.action === 'show') document.getElementById('scoreboard').classList.add('active');

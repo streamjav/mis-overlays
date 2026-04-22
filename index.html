@@ -33,6 +33,7 @@
             border-radius: 18px;
             box-shadow: 0 16px 40px rgba(0,0,0,0.35);
             opacity: 0;
+            transform: translate3d(0, 0, 0) scale(0.98);
             transition:
                 transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
                 width 0.55s cubic-bezier(0.16, 1, 0.3, 1),
@@ -172,6 +173,7 @@
 
     <div class="overlay-root">
         <div id="webrtc-wrap" class="webrtc-wrap"><div id="webrtc-stage" class="webrtc-stage"></div></div>
+
         <div id="zocalo-wrap" class="zocalo-wrap zocalo-hidden z-modern">
             <div class="z-base" id="z-base-content"></div>
         </div>
@@ -201,32 +203,46 @@
         let seconds = 0, timerInterval = null;
 
         const WEBRTC_STORAGE_KEY = ID_UNICO + '_webrtc_storage';
-        const DEFAULT_WEBRTC_STATE = {
-            visible: false,
-            url: "",
-            mode: "pip",
-            position: "br",
-            width: 420,
-            height: 236,
-            scale: 1
-        };
+        const DEFAULT_WEBRTC_STATE = { visible: false, url: '', mode: 'pip', position: 'br', width: 420, height: 236, scale: 1 };
         let webrtcState = { ...DEFAULT_WEBRTC_STATE };
+        let webrtcShowTimer = null;
 
-        function stripWebRTCNoAudio(url) {
-            const raw = String(url ?? '').trim();
-            if (!raw) return '';
-            return raw
-                .replace(/([?&])noaudio(?:=1)?(?=&|$)/gi, '$1')
-                .replace(/\?&/g, '?')
-                .replace(/&&+/g, '&')
-                .replace(/[?&]$/g, '');
+        function normalizeWebRTCUrl(value) {
+            return String(value ?? '').trim();
         }
 
-        function addWebRTCNoAudio(url) {
-            const clean = stripWebRTCNoAudio(url);
-            if (!clean) return '';
-            if (/([?&])noaudio(?:=1)?(?:&|$)/i.test(clean)) return clean;
-            return clean.includes('?') ? `${clean}&noaudio` : `${clean}?noaudio`;
+        function stripNoAudio(url) {
+            const raw = normalizeWebRTCUrl(url);
+            if (!raw) return '';
+            const hashIndex = raw.indexOf('#');
+            const base = hashIndex >= 0 ? raw.slice(0, hashIndex) : raw;
+            const hash = hashIndex >= 0 ? raw.slice(hashIndex) : '';
+            const cleaned = base
+                .replace(/([?&])(?:noaudio|na|hideaudio)(?:=[^&#]*)?(?=&|$)/gi, '$1')
+                .replace(/[?&]$/g, '')
+                .replace(/\?&/g, '?')
+                .replace(/&&+/g, '&');
+            return cleaned + hash;
+        }
+
+        function addNoAudio(url) {
+            const cleaned = stripNoAudio(url);
+            if (!cleaned) return '';
+            if (/[?&](?:noaudio|na|hideaudio)(?:=[^&#]*)?(?:$|&)/i.test(cleaned) || /[?&]noaudio(?:$|&)/i.test(cleaned)) {
+                return cleaned;
+            }
+            return cleaned.includes('?') ? cleaned + '&noaudio' : cleaned + '?noaudio';
+        }
+
+        function isWebRTCMessage(payload) {
+            const type = String(payload && payload.type || '').toLowerCase();
+            if (type.indexOf('webrtc') !== -1) return true;
+            const data = payload && payload.data && typeof payload.data === 'object' ? payload.data : payload;
+            return !!(data && typeof data === 'object' && (
+                ('url' in data) || ('link' in data) || ('src' in data) || ('visible' in data) ||
+                ('show' in data) || ('hide' in data) || ('action' in data) || ('mode' in data) ||
+                ('position' in data) || ('corner' in data) || ('fullscreen' in data)
+            ));
         }
 
         function saveWebRTCState() {
@@ -235,155 +251,155 @@
 
         function loadWebRTCState() {
             try {
-                const raw = localStorage.getItem(WEBRTC_STORAGE_KEY);
-                if (!raw) return;
-                webrtcState = mergeWebRTCState(DEFAULT_WEBRTC_STATE, JSON.parse(raw));
-            } catch (e) {
-                webrtcState = { ...DEFAULT_WEBRTC_STATE };
-            }
-        }
-
-        function mergeWebRTCState(base, incoming) {
-            const src = incoming || {};
-            return {
-                ...base,
-                ...src,
-                visible: !!(src.visible ?? base.visible),
-                url: stripWebRTCNoAudio(String(src.url ?? src.link ?? src.src ?? src.iframe ?? base.url ?? "").trim()),
-                mode: (src.mode ?? src.view ?? base.mode ?? "pip") === "fullscreen" ? "fullscreen" : "pip",
-                position: ["tl", "tr", "bl", "br"].includes(src.position) ? src.position : (src.corner && ["tl", "tr", "bl", "br"].includes(src.corner) ? src.corner : base.position || "br"),
-                width: Math.max(240, Number(src.width ?? base.width ?? 420) || 420),
-                height: Math.max(135, Number(src.height ?? base.height ?? 236) || 236),
-                scale: Math.max(0.4, Math.min(1.8, Number(src.scale ?? base.scale ?? 1) || 1))
-            };
+                const saved = localStorage.getItem(WEBRTC_STORAGE_KEY);
+                if (!saved) return;
+                const parsed = JSON.parse(saved);
+                if (!parsed || typeof parsed !== 'object') return;
+                webrtcState = {
+                    ...DEFAULT_WEBRTC_STATE,
+                    ...parsed,
+                    visible: !!parsed.visible,
+                    url: normalizeWebRTCUrl(parsed.url || ''),
+                    mode: parsed.mode === 'fullscreen' ? 'fullscreen' : 'pip',
+                    position: ['tl', 'tr', 'bl', 'br'].includes(parsed.position) ? parsed.position : 'br',
+                    width: Number(parsed.width || 420) || 420,
+                    height: Number(parsed.height || 236) || 236,
+                    scale: Number(parsed.scale || 1) || 1
+                };
+            } catch (e) {}
         }
 
         function ensureWebRTCElements() {
             const stage = document.getElementById('webrtc-stage');
             if (!stage) return null;
-            let shell = document.getElementById('webrtc-shell');
-            if (!shell) {
-                shell = document.createElement('div');
-                shell.id = 'webrtc-shell';
-                shell.className = 'webrtc-shell';
-                shell.innerHTML = `
-                    <iframe id="webrtc-iframe"
-                        allow="autoplay; camera; microphone; fullscreen; picture-in-picture; display-capture"
-                        allowfullscreen
-                        referrerpolicy="no-referrer"
-                        loading="eager"
-                        src="about:blank"></iframe>
-                    <div id="webrtc-fallback" class="webrtc-fallback">Sin enlace WEBRTC activo.</div>
-                `;
-                stage.appendChild(shell);
-            }
+            var shell = document.getElementById('webrtc-shell');
+            if (shell) return shell;
+            shell = document.createElement('div');
+            shell.id = 'webrtc-shell';
+            shell.className = 'webrtc-shell';
+            shell.innerHTML = '<iframe id="webrtc-frame" allow="autoplay; fullscreen; picture-in-picture; microphone; camera" allowfullscreen referrerpolicy="no-referrer" src="about:blank"></iframe><div id="webrtc-fallback" class="webrtc-fallback">Sin enlace WEBRTC activo.</div>';
+            stage.appendChild(shell);
             return shell;
         }
 
-        function isWebRTCMessage(msg) {
-            if (!msg || typeof msg !== 'object') return false;
-            const t = String(msg.type || '').toLowerCase();
-            if (['webrtc_update', 'webrtc_control', 'control_webrtc', 'webrtc_state'].includes(t)) return true;
-            const d = msg.data && typeof msg.data === 'object' ? msg.data : msg;
-            return !!(d && (
-                d.url || d.link || d.src || d.iframe ||
-                typeof d.mode !== 'undefined' ||
-                typeof d.position !== 'undefined' ||
-                typeof d.visible !== 'undefined' ||
-                typeof d.fullscreen !== 'undefined'
-            ));
-        }
-
-        function getWebRTCData(msg) {
-            const base = (msg && typeof msg === 'object') ? (msg.data && typeof msg.data === 'object' ? msg.data : msg) : {};
-            if (base.action === 'show' || base.command === 'show' || base.action === 'mostrar') base.visible = true;
-            if (base.action === 'hide' || base.command === 'hide' || base.action === 'ocultar') base.visible = false;
-            if (base.fullscreen === true) base.mode = 'fullscreen';
-            if (base.fullscreen === false && !base.mode) base.mode = 'pip';
-            if (typeof base.visible === 'undefined' && (base.url || base.link || base.src || base.iframe)) base.visible = true;
-            return base;
+        function destroyWebRTCStream() {
+            var iframe = document.getElementById('webrtc-frame');
+            if (!iframe) return;
+            try { iframe.src = 'about:blank'; } catch (e) {}
+            try { iframe.removeAttribute('src'); } catch (e) {}
         }
 
         function positionToXY(position, width, height) {
-            const marginX = 40;
-            const marginY = 40;
-            const bottomY = 84;
-            const viewportW = window.innerWidth || 1280;
-            const viewportH = window.innerHeight || 720;
+            var marginX = 40;
+            var marginY = 40;
+            var bottomOffset = 84;
+            var maxX = Math.max(marginX, window.innerWidth - width - marginX);
+            var maxY = Math.max(marginY, window.innerHeight - height - bottomOffset);
             switch (position) {
                 case 'tl': return { x: marginX, y: marginY };
-                case 'tr': return { x: Math.max(marginX, viewportW - width - marginX), y: marginY };
-                case 'bl': return { x: marginX, y: Math.max(marginY, viewportH - height - bottomY) };
-                case 'br':
-                default:   return { x: Math.max(marginX, viewportW - width - marginX), y: Math.max(marginY, viewportH - height - bottomY) };
+                case 'tr': return { x: maxX, y: marginY };
+                case 'bl': return { x: marginX, y: maxY };
+                default: return { x: maxX, y: maxY };
             }
         }
 
-        function renderWebRTC() {
-            const baseUrl = stripWebRTCNoAudio(String(webrtcState.url || '').trim());
-            const existing = document.getElementById('webrtc-shell');
-            if (!baseUrl) {
-                if (existing) existing.remove();
-                return;
-            }
-
-            const shell = ensureWebRTCElements();
+        function layoutWebRTC(animate) {
+            if (animate === void 0) animate = true;
+            var shell = ensureWebRTCElements();
             if (!shell) return;
-            const iframe = document.getElementById('webrtc-iframe');
-            const fallback = document.getElementById('webrtc-fallback');
-            const visible = !!webrtcState.visible;
-            const mode = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
+            var iframe = document.getElementById('webrtc-frame');
+            var fallback = document.getElementById('webrtc-fallback');
+            var rawUrl = normalizeWebRTCUrl(webrtcState.url);
+            var shouldShow = !!webrtcState.visible && !!rawUrl;
+            var nextUrl = shouldShow ? stripNoAudio(rawUrl) : addNoAudio(rawUrl);
 
-            shell.classList.toggle('visible', visible);
-            shell.classList.toggle('fullscreen', visible && mode === 'fullscreen');
+            if (!animate) shell.style.transition = 'none';
+            else shell.style.transition = '';
 
-            const finalSrc = visible ? baseUrl : addWebRTCNoAudio(baseUrl);
-            if (iframe && iframe.getAttribute('src') !== finalSrc) {
-                iframe.setAttribute('src', finalSrc);
-            }
-
-            if (!visible) {
+            if (!rawUrl) {
+                if (webrtcShowTimer) { clearTimeout(webrtcShowTimer); webrtcShowTimer = null; }
+                shell.classList.remove('visible');
+                shell.classList.remove('fullscreen');
                 shell.style.width = '0px';
                 shell.style.height = '0px';
-                shell.style.transform = 'translate3d(0px, 0px, 0) scale(0.98)';
-                if (fallback) fallback.style.display = 'none';
+                shell.style.opacity = '0';
+                destroyWebRTCStream();
+                if (fallback) fallback.style.display = 'flex';
                 saveWebRTCState();
                 return;
             }
 
-            if (mode === 'fullscreen') {
+            if (iframe && iframe.src !== nextUrl) {
+                iframe.src = nextUrl;
+            }
+
+            if (webrtcState.mode === 'fullscreen' && shouldShow) {
+                shell.classList.add('fullscreen');
                 shell.style.width = '100vw';
                 shell.style.height = '100vh';
                 shell.style.left = '0';
                 shell.style.top = '0';
                 shell.style.right = 'auto';
                 shell.style.bottom = 'auto';
-                shell.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
             } else {
-                const width = Math.round(Number(webrtcState.width || 420) * Number(webrtcState.scale || 1));
-                const height = Math.round(Number(webrtcState.height || 236) * Number(webrtcState.scale || 1));
-                const { x, y } = positionToXY(webrtcState.position || 'br', width, height);
-                shell.style.width = `${width}px`;
-                shell.style.height = `${height}px`;
-                shell.style.left = `${x}px`;
-                shell.style.top = `${y}px`;
+                shell.classList.remove('fullscreen');
+                var width = Math.round(Number(webrtcState.width || 420) * Number(webrtcState.scale || 1));
+                var height = Math.round(Number(webrtcState.height || 236) * Number(webrtcState.scale || 1));
+                var pos = positionToXY(webrtcState.position || 'br', width, height);
+                shell.style.width = width + 'px';
+                shell.style.height = height + 'px';
+                shell.style.left = pos.x + 'px';
+                shell.style.top = pos.y + 'px';
                 shell.style.right = 'auto';
                 shell.style.bottom = 'auto';
-                shell.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
                 shell.style.borderRadius = '18px';
             }
 
             if (fallback) fallback.style.display = 'none';
+
+            if (!shouldShow) {
+                if (webrtcShowTimer) { clearTimeout(webrtcShowTimer); webrtcShowTimer = null; }
+                shell.classList.remove('visible');
+                shell.style.opacity = '0';
+                saveWebRTCState();
+                return;
+            }
+
+            shell.classList.remove('visible');
+            shell.style.opacity = '0';
+            if (webrtcShowTimer) clearTimeout(webrtcShowTimer);
+            webrtcShowTimer = setTimeout(function () {
+                webrtcShowTimer = null;
+                if (webrtcState.visible && normalizeWebRTCUrl(webrtcState.url)) {
+                    shell.classList.add('visible');
+                }
+            }, 1000);
+
             saveWebRTCState();
         }
 
-        function applyWebRTCUpdate(msg) {
-            const data = getWebRTCData(msg);
-            webrtcState = mergeWebRTCState(webrtcState, data);
+        function applyWebRTCMessage(payload) {
+            var data = payload && payload.data && typeof payload.data === 'object' ? payload.data : (payload || {});
+            var action = String(data.action || data.command || data.state || '').toLowerCase();
+            var rawUrl = data.url || data.link || data.src || data.webrtcUrl || data.webrtc_url || '';
+            if (rawUrl !== '' && rawUrl !== undefined && rawUrl !== null) {
+                webrtcState.url = normalizeWebRTCUrl(rawUrl);
+            }
+            var position = String(data.position || data.corner || data.place || webrtcState.position || 'br').toLowerCase();
+            if (['tl', 'tr', 'bl', 'br'].indexOf(position) !== -1) webrtcState.position = position;
+            if (data.mode) webrtcState.mode = String(data.mode).toLowerCase() === 'fullscreen' ? 'fullscreen' : 'pip';
+            if (data.fullscreen === true) webrtcState.mode = 'fullscreen';
+            if (data.fullscreen === false && !data.mode) webrtcState.mode = 'pip';
+            if (typeof data.visible === 'boolean') {
+                webrtcState.visible = data.visible;
+            } else if (action === 'show' || action === 'mostrar' || action === 'start' || action === 'on') {
+                webrtcState.visible = true;
+            } else if (action === 'hide' || action === 'ocultar' || action === 'stop' || action === 'off') {
+                webrtcState.visible = false;
+            }
             saveWebRTCState();
-            renderWebRTC();
+            layoutWebRTC(true);
         }
-
         client.on('connect', () => client.subscribe(ID_UNICO));
         client.on('message', (topic, message) => {
             let payload = {};
@@ -405,7 +421,7 @@
                 if (data.command === 'reset') { clearInterval(timerInterval); seconds = 0; updateClock(); }
             }
             if (type === 'zocalo_update') applyZocaloUpdate(data);
-            if (isWebRTCMessage(payload)) applyWebRTCUpdate(payload);
+            if (isWebRTCMessage(payload)) applyWebRTCMessage(payload);
         });
 
         function esc(txt) {
@@ -568,8 +584,10 @@
         }
 
         loadWebRTCState();
-        renderWebRTC();
-        window.addEventListener('resize', () => renderWebRTC());
+        ensureWebRTCElements();
+        layoutWebRTC(false);
+        window.addEventListener('resize', function () { layoutWebRTC(true); });
+        window.addEventListener('orientationchange', function () { layoutWebRTC(true); });
 
         setInterval(() => {
             document.getElementById('clock-ui').innerText = new Date().toLocaleTimeString('es-ES', { hour12: false });

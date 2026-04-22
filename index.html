@@ -11,6 +11,7 @@
             position: absolute; top: 40px; left: 50px; display: flex; align-items: stretch; height: 55px;
             filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
             transform: translateY(-120px); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 30;
         }
         #scoreboard.active { transform: translateY(0); }
         .team-container { display: flex; align-items: stretch; flex-grow: 1; min-width: 180px; }
@@ -25,33 +26,48 @@
         .overlay-root { position: fixed; inset: 0; pointer-events: none; overflow: hidden; font-family: 'Inter', Arial, sans-serif; }
 
         .webrtc-wrap { position: absolute; inset: 0; z-index: 15; pointer-events: none; overflow: hidden; }
-        .webrtc-stage { position: absolute; inset: 0; pointer-events: none; }
-        .webrtc-shell {
-            position: absolute;
-            overflow: hidden;
-            background: #000;
-            border-radius: 18px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.35);
-            opacity: 0;
-            transform: translate3d(0,0,0) scale(0.98);
-            transition:
-                transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-                width 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-                height 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-                opacity 0.25s ease,
-                border-radius 0.35s ease;
-            will-change: transform, width, height, opacity;
-        }
-        .webrtc-shell.visible { opacity: 1; }
-        .webrtc-shell.fullscreen { border-radius: 0; box-shadow: none; }
-        .webrtc-shell iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
-        .webrtc-fallback {
-            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-            padding: 20px; color: rgba(255,255,255,0.75); text-align: center; font-size: 13px; line-height: 1.4;
-            pointer-events: none;
-        }
-
-        .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; transform-origin: bottom left; transition: 0.45s cubic-bezier(0.16,1,0.3,1); }
+.webrtc-stage { position: absolute; inset: 0; pointer-events: none; }
+.webrtc-shell {
+    position: absolute;
+    overflow: hidden;
+    background: #000;
+    border-radius: 18px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    opacity: 0;
+    transition:
+        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+        width 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+        height 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.25s ease,
+        border-radius 0.35s ease;
+    will-change: transform, width, height, opacity;
+}
+.webrtc-shell.visible { opacity: 1; }
+.webrtc-shell.fullscreen {
+    border-radius: 0;
+    box-shadow: none;
+}
+.webrtc-shell iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #000;
+}
+.webrtc-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: rgba(255,255,255,0.75);
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.4;
+    pointer-events: none;
+}
+        .zocalo-wrap { position: absolute; left: 48px; bottom: 84px; z-index: 20; transform-origin: bottom left; transition: 0.45s cubic-bezier(0.16,1,0.3,1); }
         .zocalo-hidden { opacity: 0; transform: translateY(90px) scale(0.96); }
         .zocalo-visible { opacity: 1; transform: translateY(0) scale(1); }
 
@@ -112,7 +128,7 @@
         .z-tv-sport h1 { margin: 0; font-weight: 900; font-size: 42px; transform: skewX(15deg); text-transform: uppercase; letter-spacing: -1px; animation: slideUp 0.6s both 0.3s; }
         @keyframes slideUp { from { transform: skewX(15deg) translateY(100%); } to { transform: skewX(15deg) translateY(0); } }
 
-        #social-wrap { position: absolute; left: 48px; bottom: 150px; display: none; transform-origin: bottom left; }
+        #social-wrap { position: absolute; left: 48px; bottom: 150px; display: none; z-index: 30; transform-origin: bottom left; }
         .soc-pill-main { background: white; color: black; padding: 10px 20px; border-radius: 999px; display: flex; align-items: center; gap: 14px; box-shadow: 0 14px 40px rgba(0,0,0,0.35); border: 2px solid #e2e8f0; }
         .soc-box { padding: 6px 14px; border-radius: 8px; font-weight: 900; font-size: 20px; color: white; letter-spacing: 1px; text-transform: uppercase; }
         .soc-handle { font-size: 24px; font-weight: 900; color: #0f172a; }
@@ -123,12 +139,12 @@
         .soc-twitter .soc-box { background: #000000; }
         .soc-tiktok .soc-box { background: #000000; text-shadow: 2px 0px 0px #00f2fe, -2px 0px 0px #fe0979; }
 
-        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; align-items: center; overflow: hidden; }
+        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; z-index: 50; align-items: center; overflow: hidden; }
         .ticker-label { background: #dc2626; height: 100%; padding: 0 28px; display: flex; align-items: center; font-weight: 900; color: white; z-index: 2; position: relative; }
         .ticker-move { display: inline-block; animation: ticker 25s linear infinite; font-size: 20px; font-weight: 800; color: white; white-space: nowrap; padding-left: 100%; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
-        .top-right-bug { position: absolute; top: 40px; right: 50px; display: flex; gap: 10px; z-index: 50; }
+        .top-right-bug { position: absolute; top: 40px; right: 50px; display: flex; gap: 10px; z-index: 60; }
         .tag-live { background: #e11d48; color: white; font-weight: 900; font-size: 18px; padding: 4px 15px; border-radius: 6px; animation: pulse 2s infinite; letter-spacing: 1px; display: none; }
         .tag-clock { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); color: white; font-weight: 800; font-size: 18px; padding: 4px 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: none; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
@@ -158,6 +174,8 @@
     </div>
 
     <div class="overlay-root">
+        <div id="webrtc-wrap" class="webrtc-wrap"><div id="webrtc-stage" class="webrtc-stage"></div></div>
+
         <div id="zocalo-wrap" class="zocalo-wrap zocalo-hidden z-modern">
             <div class="z-base" id="z-base-content"></div>
         </div>
@@ -186,10 +204,167 @@
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         let seconds = 0, timerInterval = null;
 
+const WEBRTC_STORAGE_KEY = ID_UNICO + '_webrtc_storage';
+const DEFAULT_WEBRTC_STATE = {
+    visible: false,
+    url: "",
+    mode: "pip",
+    position: "br",
+    width: 420,
+    height: 236,
+    scale: 1
+};
+let webrtcState = { ...DEFAULT_WEBRTC_STATE };
+
+function mergeWebRTCState(base, incoming) {
+    const src = incoming || {};
+    return {
+        ...base,
+        ...src,
+        visible: !!(src.visible ?? base.visible),
+        url: String(src.url ?? src.link ?? src.src ?? src.iframe ?? base.url ?? "").trim(),
+        mode: (src.mode ?? src.view ?? base.mode ?? "pip") === "fullscreen" ? "fullscreen" : "pip",
+        position: ["tl", "tr", "bl", "br"].includes(src.position) ? src.position : (src.corner && ["tl", "tr", "bl", "br"].includes(src.corner) ? src.corner : base.position || "br"),
+        width: Math.max(240, Number(src.width ?? base.width ?? 420) || 420),
+        height: Math.max(135, Number(src.height ?? base.height ?? 236) || 236),
+        scale: Math.max(0.4, Math.min(1.8, Number(src.scale ?? base.scale ?? 1) || 1))
+    };
+}
+
+function saveWebRTCState() {
+    try { localStorage.setItem(WEBRTC_STORAGE_KEY, JSON.stringify(webrtcState)); } catch (e) {}
+}
+
+function loadWebRTCState() {
+    try {
+        const raw = localStorage.getItem(WEBRTC_STORAGE_KEY);
+        if (!raw) return;
+        webrtcState = mergeWebRTCState(DEFAULT_WEBRTC_STATE, JSON.parse(raw));
+    } catch (e) {
+        webrtcState = { ...DEFAULT_WEBRTC_STATE };
+    }
+}
+
+function ensureWebRTCElements() {
+    const stage = document.getElementById('webrtc-stage');
+    if (!stage) return null;
+    let shell = document.getElementById('webrtc-shell');
+    if (!shell) {
+        shell = document.createElement('div');
+        shell.id = 'webrtc-shell';
+        shell.className = 'webrtc-shell';
+        shell.innerHTML = `
+            <iframe id="webrtc-iframe"
+                allow="autoplay; camera; microphone; fullscreen; picture-in-picture; display-capture"
+                allowfullscreen
+                referrerpolicy="no-referrer"
+                loading="eager"
+                src="about:blank"></iframe>
+            <div id="webrtc-fallback" class="webrtc-fallback">Sin enlace WEBRTC activo.</div>
+        `;
+        stage.appendChild(shell);
+    }
+    return shell;
+}
+
+function isWebRTCMessage(msg) {
+    if (!msg || typeof msg !== 'object') return false;
+    const t = String(msg.type || '').toLowerCase();
+    if (['webrtc_update', 'webrtc_control', 'control_webrtc', 'webrtc_state'].includes(t)) return true;
+    const d = msg.data && typeof msg.data === 'object' ? msg.data : msg;
+    return !!(d && (
+        d.url || d.link || d.src || d.iframe ||
+        typeof d.mode !== 'undefined' ||
+        typeof d.position !== 'undefined' ||
+        typeof d.visible !== 'undefined' ||
+        typeof d.fullscreen !== 'undefined'
+    ));
+}
+
+function getWebRTCData(msg) {
+    const base = (msg && typeof msg === 'object') ? (msg.data && typeof msg.data === 'object' ? msg.data : msg) : {};
+    if (base.action === 'show' || base.command === 'show' || base.action === 'mostrar') base.visible = true;
+    if (base.action === 'hide' || base.command === 'hide' || base.action === 'ocultar') base.visible = false;
+    if (base.fullscreen === true) base.mode = 'fullscreen';
+    if (base.fullscreen === false && !base.mode) base.mode = 'pip';
+    if (typeof base.visible === 'undefined' && (base.url || base.link || base.src || base.iframe)) base.visible = true;
+    return base;
+}
+
+function positionToXY(position, width, height) {
+    const marginX = 40;
+    const marginY = 40;
+    const bottomY = 84;
+    const viewportW = window.innerWidth || 1280;
+    const viewportH = window.innerHeight || 720;
+    switch (position) {
+        case 'tl': return { x: marginX, y: marginY };
+        case 'tr': return { x: Math.max(marginX, viewportW - width - marginX), y: marginY };
+        case 'bl': return { x: marginX, y: Math.max(marginY, viewportH - height - bottomY) };
+        case 'br':
+        default:   return { x: Math.max(marginX, viewportW - width - marginX), y: Math.max(marginY, viewportH - height - bottomY) };
+    }
+}
+
+function layoutWebRTC(animate = true) {
+    const shell = ensureWebRTCElements();
+    if (!shell) return;
+    const iframe = document.getElementById('webrtc-iframe');
+    const fallback = document.getElementById('webrtc-fallback');
+    const visible = !!webrtcState.visible && !!String(webrtcState.url || '').trim();
+    const mode = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
+
+    shell.classList.toggle('visible', visible);
+    shell.classList.toggle('fullscreen', visible && mode === 'fullscreen');
+    if (!animate) shell.style.transition = 'none';
+    else shell.style.transition = '';
+
+    if (!visible) {
+        shell.style.width = '0px';
+        shell.style.height = '0px';
+        shell.style.transform = 'translate3d(0px, 0px, 0) scale(0.98)';
+        if (fallback) fallback.style.display = 'flex';
+        return;
+    }
+
+    const src = String(webrtcState.url).trim();
+    if (iframe && iframe.src !== src) iframe.src = src;
+
+    if (mode === 'fullscreen') {
+        shell.style.width = '100vw';
+        shell.style.height = '100vh';
+        shell.style.transform = 'translate3d(0px, 0px, 0) scale(1)';
+        if (fallback) fallback.style.display = 'none';
+        return;
+    }
+
+    const width = Math.round(Number(webrtcState.width || 420) * Number(webrtcState.scale || 1));
+    const height = Math.round(Number(webrtcState.height || 236) * Number(webrtcState.scale || 1));
+    const { x, y } = positionToXY(webrtcState.position || 'br', width, height);
+    shell.style.width = `${width}px`;
+    shell.style.height = `${height}px`;
+    shell.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1)`;
+    if (fallback) fallback.style.display = 'none';
+}
+
+function applyWebRTCUpdate(msg) {
+    const data = getWebRTCData(msg);
+    webrtcState = mergeWebRTCState(webrtcState, data);
+    saveWebRTCState();
+    layoutWebRTC(true);
+}
+
         client.on('connect', () => client.subscribe(ID_UNICO));
         client.on('message', (topic, message) => {
-            const { type, data } = JSON.parse(message.toString());
-            const payload = { type, data };
+            let payload = {};
+            try {
+                payload = JSON.parse(message.toString());
+            } catch (e) {
+                return;
+            }
+
+            const type = payload?.type;
+            const data = payload?.data;
 
             if (type === 'update_info') applyUpdate(data);
             if (type === 'control_ui') {
@@ -202,7 +377,10 @@
                 if (data.command === 'reset') { clearInterval(timerInterval); seconds = 0; updateClock(); }
             }
             if (type === 'zocalo_update') applyZocaloUpdate(data);
-            if (looksLikeWebRTCMessage(payload)) applyWebRTCMessage(payload);
+
+            if (isWebRTCMessage(payload)) {
+                applyWebRTCUpdate(payload);
+            }
         });
 
         function esc(txt) {
@@ -268,190 +446,8 @@
             document.getElementById('clock').innerText = `${m}:${s}`;
         }
 
-        const WEBRTC_STORAGE_KEY = ID_UNICO + '_webrtc_storage';
-        const DEFAULT_WEBRTC_STATE = { visible: false, url: '', mode: 'pip', position: 'br', width: 420, height: 236, scale: 1 };
-        let webrtcState = { ...DEFAULT_WEBRTC_STATE };
-
-        function normalizeWebRTCUrl(rawUrl) {
-            return String(rawUrl ?? '').trim();
-        }
-
-        function stripNoAudio(url) {
-            const raw = normalizeWebRTCUrl(url);
-            if (!raw) return '';
-            const hashIndex = raw.indexOf('#');
-            const base = hashIndex >= 0 ? raw.slice(0, hashIndex) : raw;
-            const hash = hashIndex >= 0 ? raw.slice(hashIndex) : '';
-            const cleaned = base
-                .replace(/([?&])(?:noaudio|na|hideaudio)(?:=[^&#]*)?(?=&|$)/gi, '$1')
-                .replace(/[?&]$/g, '')
-                .replace(/\?&/g, '?')
-                .replace(/&&+/g, '&');
-            return cleaned + hash;
-        }
-
-        function addNoAudio(url) {
-            const cleaned = stripNoAudio(url);
-            if (!cleaned) return '';
-            if (/[?&](?:noaudio|na|hideaudio)(?:=[^&#]*)?(?:$|&)/i.test(cleaned) || /[?&]noaudio(?:$|&)/i.test(cleaned)) {
-                return cleaned;
-            }
-            return cleaned.includes('?') ? `${cleaned}&noaudio` : `${cleaned}?noaudio`;
-        }
-
-        function looksLikeWebRTCMessage(payload) {
-            const t = String(payload?.type || '').toLowerCase();
-            if (t.includes('webrtc')) return true;
-            const d = payload?.data ?? payload;
-            if (!d || typeof d !== 'object') return false;
-            return ['url', 'link', 'src', 'visible', 'show', 'hide', 'action', 'mode', 'position', 'corner'].some(k => k in d);
-        }
-
-        function saveWebRTCState() {
-            try {
-                localStorage.setItem(WEBRTC_STORAGE_KEY, JSON.stringify(webrtcState));
-            } catch (e) { }
-        }
-
-        function loadWebRTCState() {
-            try {
-                const saved = localStorage.getItem(WEBRTC_STORAGE_KEY);
-                if (!saved) return;
-                const parsed = JSON.parse(saved);
-                if (parsed && typeof parsed === 'object') {
-                    webrtcState = {
-                        ...DEFAULT_WEBRTC_STATE,
-                        ...parsed,
-                        visible: !!parsed.visible,
-                        url: normalizeWebRTCUrl(parsed.url ?? ''),
-                        mode: parsed.mode === 'fullscreen' ? 'fullscreen' : 'pip',
-                        position: ['tl', 'tr', 'bl', 'br'].includes(parsed.position) ? parsed.position : 'br',
-                        width: Number(parsed.width ?? 420) || 420,
-                        height: Number(parsed.height ?? 236) || 236,
-                        scale: Number(parsed.scale ?? 1) || 1
-                    };
-                }
-            } catch (e) { }
-        }
-
-        function ensureWebRTCElements() {
-            const stage = document.getElementById('webrtc-stage');
-            if (!stage) return null;
-            let shell = document.getElementById('webrtc-shell');
-            if (shell) return shell;
-
-            shell = document.createElement('div');
-            shell.id = 'webrtc-shell';
-            shell.className = 'webrtc-shell';
-            shell.innerHTML = `
-                <iframe id="webrtc-frame" allow="autoplay; fullscreen; picture-in-picture; microphone; camera" allowfullscreen referrerpolicy="no-referrer" src="about:blank"></iframe>
-                <div id="webrtc-fallback" class="webrtc-fallback">Sin enlace WEBRTC activo.</div>
-            `;
-            stage.appendChild(shell);
-            return shell;
-        }
-
-        function destroyWebRTCStream() {
-            const iframe = document.getElementById('webrtc-frame');
-            if (!iframe) return;
-            try { iframe.src = 'about:blank'; } catch (e) { }
-            iframe.removeAttribute('src');
-        }
-
-        function positionToXY(position, width, height) {
-            const marginX = 40;
-            const marginY = 40;
-            const bottomOffset = 84;
-            const maxX = Math.max(marginX, window.innerWidth - width - marginX);
-            const maxY = Math.max(marginY, window.innerHeight - height - bottomOffset);
-            switch (position) {
-                case 'tl': return { x: marginX, y: marginY };
-                case 'tr': return { x: maxX, y: marginY };
-                case 'bl': return { x: marginX, y: maxY };
-                default: return { x: maxX, y: maxY };
-            }
-        }
-
-        function renderWebRTC() {
-            const rawUrl = normalizeWebRTCUrl(webrtcState.url);
-            const shell = ensureWebRTCElements();
-            if (!shell) return;
-
-            const iframe = document.getElementById('webrtc-frame');
-            const fallback = document.getElementById('webrtc-fallback');
-            const visible = !!webrtcState.visible && !!rawUrl;
-            const mode = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
-            const nextUrl = visible ? stripNoAudio(rawUrl) : addNoAudio(rawUrl);
-
-            if (!rawUrl) {
-                shell.classList.remove('visible', 'fullscreen');
-                shell.style.width = '0px';
-                shell.style.height = '0px';
-                shell.style.opacity = '0';
-                destroyWebRTCStream();
-                if (fallback) fallback.style.display = 'flex';
-                saveWebRTCState();
-                return;
-            }
-
-            if (iframe && iframe.src !== nextUrl) {
-                iframe.src = nextUrl;
-            }
-
-            if (mode === 'fullscreen' && visible) {
-                shell.classList.add('fullscreen');
-                shell.style.width = '100vw';
-                shell.style.height = '100vh';
-                shell.style.left = '0';
-                shell.style.top = '0';
-                shell.style.right = 'auto';
-                shell.style.bottom = 'auto';
-                shell.style.borderRadius = '0';
-            } else {
-                shell.classList.remove('fullscreen');
-                const width = Math.round(Number(webrtcState.width || 420) * Number(webrtcState.scale || 1));
-                const height = Math.round(Number(webrtcState.height || 236) * Number(webrtcState.scale || 1));
-                const { x, y } = positionToXY(webrtcState.position || 'br', width, height);
-                shell.style.width = `${width}px`;
-                shell.style.height = `${height}px`;
-                shell.style.left = `${x}px`;
-                shell.style.top = `${y}px`;
-                shell.style.right = 'auto';
-                shell.style.bottom = 'auto';
-                shell.style.borderRadius = '18px';
-            }
-
-            if (fallback) fallback.style.display = 'none';
-            shell.classList.toggle('visible', visible);
-            shell.style.opacity = visible ? '1' : '0';
-            saveWebRTCState();
-        }
-
-        function applyWebRTCMessage(payload) {
-            const d = payload?.data && typeof payload.data === 'object' ? payload.data : (payload || {});
-            if (typeof d.visible === 'boolean') webrtcState.visible = d.visible;
-            if (typeof d.show === 'boolean') webrtcState.visible = d.show;
-            if (typeof d.hide === 'boolean') webrtcState.visible = !d.hide;
-            if (d.action === 'show') webrtcState.visible = true;
-            if (d.action === 'hide') webrtcState.visible = false;
-
-            const incomingUrl = normalizeWebRTCUrl(d.url ?? d.link ?? d.src ?? d.iframe ?? '');
-            if (incomingUrl) webrtcState.url = incomingUrl;
-
-            const incomingMode = String(d.mode ?? d.view ?? '').toLowerCase();
-            if (incomingMode === 'fullscreen') webrtcState.mode = 'fullscreen';
-            else if (incomingMode === 'pip') webrtcState.mode = 'pip';
-            else if (d.fullscreen === true) webrtcState.mode = 'fullscreen';
-
-            const incomingPos = String(d.position ?? d.pos ?? d.corner ?? '').toLowerCase();
-            if (['tl', 'tr', 'bl', 'br'].includes(incomingPos)) webrtcState.position = incomingPos;
-
-            if (d.width != null) webrtcState.width = Number(d.width) || webrtcState.width;
-            if (d.height != null) webrtcState.height = Number(d.height) || webrtcState.height;
-            if (d.scale != null) webrtcState.scale = Number(d.scale) || webrtcState.scale;
-
-            renderWebRTC();
-        }
+        window.addEventListener('resize', () => layoutWebRTC(true));
+        window.addEventListener('orientationchange', () => layoutWebRTC(true));
 
         function applyZocaloUpdate(d) {
             const lt = d.lt || {};
@@ -549,18 +545,13 @@
             document.getElementById('clock-ui').style.display = bug.showClock ? 'block' : 'none';
         }
 
+        loadWebRTCState();
+        ensureWebRTCElements();
+        layoutWebRTC(false);
+
         setInterval(() => {
             document.getElementById('clock-ui').innerText = new Date().toLocaleTimeString('es-ES', { hour12: false });
         }, 1000);
-
-        window.addEventListener('load', () => {
-            loadWebRTCState();
-            renderWebRTC();
-        });
-
-        window.addEventListener('resize', () => {
-            if (webrtcState.visible) renderWebRTC();
-        });
     </script>
 </body>
 </html>

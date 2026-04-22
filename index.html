@@ -387,6 +387,7 @@
                 shell.classList.remove('visible', 'fullscreen');
                 shell.style.width = '0px';
                 shell.style.height = '0px';
+                shell.style.opacity = '0';
                 destroyWebRTCStream();
                 if (fallback) fallback.style.display = 'flex';
                 saveWebRTCState();
@@ -422,7 +423,7 @@
 
             if (fallback) fallback.style.display = 'none';
             shell.classList.toggle('visible', visible);
-            if (!visible) shell.style.opacity = '0';
+            shell.style.opacity = visible ? '1' : '0';
             saveWebRTCState();
         }
 

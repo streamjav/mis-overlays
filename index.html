@@ -291,6 +291,28 @@ function getWebRTCData(msg) {
     return base;
 }
 
+function normalizeWebRTCUrl(rawUrl, disableAudio = false) {
+    const src = String(rawUrl || '').trim();
+    if (!src) return 'about:blank';
+
+    const hashIndex = src.indexOf('#');
+    const hash = hashIndex >= 0 ? src.slice(hashIndex) : '';
+    const beforeHash = hashIndex >= 0 ? src.slice(0, hashIndex) : src;
+    const queryIndex = beforeHash.indexOf('?');
+    const base = queryIndex >= 0 ? beforeHash.slice(0, queryIndex) : beforeHash;
+    const query = queryIndex >= 0 ? beforeHash.slice(queryIndex + 1) : '';
+
+    const parts = query ? query.split('&').filter(Boolean) : [];
+    const filtered = parts.filter(part => {
+        const key = part.split('=')[0].trim().toLowerCase();
+        return key !== 'noaudio';
+    });
+
+    if (disableAudio) filtered.push('noaudio');
+
+    return `${base}${filtered.length ? `?${filtered.join('&')}` : ''}${hash}`;
+}
+
 function positionToXY(position, width, height) {
     const marginX = 40;
     const marginY = 40;
@@ -311,13 +333,21 @@ function layoutWebRTC(animate = true) {
     if (!shell) return;
     const iframe = document.getElementById('webrtc-iframe');
     const fallback = document.getElementById('webrtc-fallback');
-    const visible = !!webrtcState.visible && !!String(webrtcState.url || '').trim();
+    const rawUrl = String(webrtcState.url || '').trim();
+    const hasSource = !!rawUrl;
+    const visible = !!webrtcState.visible && hasSource;
     const mode = webrtcState.mode === 'fullscreen' ? 'fullscreen' : 'pip';
+    const effectiveSrc = normalizeWebRTCUrl(rawUrl, !visible && hasSource);
 
     shell.classList.toggle('visible', visible);
     shell.classList.toggle('fullscreen', visible && mode === 'fullscreen');
     if (!animate) shell.style.transition = 'none';
     else shell.style.transition = '';
+
+    if (iframe && iframe.dataset.loadedSrc !== effectiveSrc) {
+        iframe.src = effectiveSrc;
+        iframe.dataset.loadedSrc = effectiveSrc;
+    }
 
     if (!visible) {
         shell.style.width = '0px';
@@ -326,9 +356,6 @@ function layoutWebRTC(animate = true) {
         if (fallback) fallback.style.display = 'flex';
         return;
     }
-
-    const src = String(webrtcState.url).trim();
-    if (iframe && iframe.src !== src) iframe.src = src;
 
     if (mode === 'fullscreen') {
         shell.style.width = '100vw';

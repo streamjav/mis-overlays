@@ -113,7 +113,7 @@
         .z-premium .z-accent-bar { display: none; }
         .z-premium .z-sub { background: linear-gradient(to right, #facc15, #a16207); color: #0f172a; margin-left: 0; border-radius: 4px; font-weight: 900; letter-spacing: 2px; }
 
-        .z-capsule { left: auto; right: 48px; transform-origin: bottom right; }
+        .z-capsule { left: 48px; right: auto; transform-origin: bottom left; }
         .z-capsule .z-title { border-radius: 999px; background: #bef264; border: none; box-shadow: none; }
         .z-capsule h1 { font-size: 45px; color: #166534; font-weight: 900; }
         .z-capsule .z-accent-bar { background: #166534 !important; }
@@ -132,7 +132,7 @@
         .z-tv-sport h1 { margin: 0; font-weight: 900; font-size: 42px; transform: skewX(15deg); text-transform: uppercase; letter-spacing: -1px; animation: slideUp 0.6s both 0.3s; }
         @keyframes slideUp { from { transform: skewX(15deg) translateY(100%); } to { transform: skewX(15deg) translateY(0); } }
 
-        #social-wrap { position: absolute; left: 48px; bottom: 150px; display: none; z-index: 30; transform-origin: bottom left; }
+        #social-wrap { position: absolute; right: 48px; left: auto; bottom: 150px; display: none; z-index: 30; transform-origin: bottom right; }
         .soc-pill-main { background: white; color: black; padding: 10px 20px; border-radius: 999px; display: flex; align-items: center; gap: 14px; box-shadow: none; border: 2px solid #e2e8f0; }
         .soc-box { padding: 6px 14px; border-radius: 8px; font-weight: 900; font-size: 20px; color: white; letter-spacing: 1px; text-transform: uppercase; }
         .soc-handle { font-size: 24px; font-weight: 900; color: #0f172a; }
@@ -143,14 +143,14 @@
         .soc-twitter .soc-box { background: #000000; }
         .soc-tiktok .soc-box { background: #000000; text-shadow: 2px 0px 0px #00f2fe, -2px 0px 0px #fe0979; }
 
-        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 52px; background: #0f172a; border-top: 4px solid #dc2626; display: none; z-index: 50; align-items: center; overflow: hidden; }
-        .ticker-label { background: #dc2626; height: 100%; padding: 0 28px; display: flex; align-items: center; font-weight: 900; color: white; z-index: 2; position: relative; }
-        .ticker-move { display: inline-block; animation: ticker 25s linear infinite; font-size: 20px; font-weight: 800; color: white; white-space: nowrap; padding-left: 100%; }
+        .ticker-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 64px; background: #0f172a; border-top: 4px solid #dc2626; display: none; z-index: 50; align-items: center; overflow: hidden; }
+        .ticker-label { background: #dc2626; height: 100%; padding: 0 34px; display: flex; align-items: center; font-weight: 900; color: white; z-index: 2; position: relative; }
+        .ticker-move { display: inline-block; animation: ticker 25s linear infinite; font-size: 24px; font-weight: 800; color: white; white-space: nowrap; padding-left: 100%; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
         .top-right-bug { position: absolute; top: 40px; right: 50px; display: flex; gap: 10px; z-index: 60; }
-        .tag-live { background: #e11d48; color: white; font-weight: 900; font-size: 18px; padding: 4px 15px; border-radius: 6px; animation: pulse 2s infinite; letter-spacing: 1px; display: none; box-shadow: none; text-shadow: none; }
-        .tag-clock { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); color: white; font-weight: 800; font-size: 18px; padding: 4px 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: none; box-shadow: none; text-shadow: none; }
+        .tag-live { background: #e11d48; color: white; font-weight: 900; font-size: 21px; padding: 6px 18px; border-radius: 6px; animation: pulse 2s infinite; letter-spacing: 1px; display: none; box-shadow: none; text-shadow: none; }
+        .tag-clock { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); color: white; font-weight: 800; font-size: 21px; padding: 6px 18px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: none; box-shadow: none; text-shadow: none; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
         .watermark { position: absolute; display: none; z-index: 1000; transition: all 0.5s ease; }

@@ -133,7 +133,7 @@
         @keyframes slideUp { from { transform: skewX(15deg) translateY(100%); } to { transform: skewX(15deg) translateY(0); } }
 
         #social-wrap { position: absolute; left: 48px; bottom: 150px; display: none; z-index: 30; transform-origin: bottom left; }
-        .soc-pill-main { background: white; color: black; padding: 10px 20px; border-radius: 999px; display: flex; align-items: center; gap: 14px; box-shadow: 0 14px 40px rgba(0,0,0,0.35); border: 2px solid #e2e8f0; }
+        .soc-pill-main { background: white; color: black; padding: 10px 20px; border-radius: 999px; display: flex; align-items: center; gap: 14px; box-shadow: none; border: 2px solid #e2e8f0; }
         .soc-box { padding: 6px 14px; border-radius: 8px; font-weight: 900; font-size: 20px; color: white; letter-spacing: 1px; text-transform: uppercase; }
         .soc-handle { font-size: 24px; font-weight: 900; color: #0f172a; }
 
@@ -149,12 +149,12 @@
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
         .top-right-bug { position: absolute; top: 40px; right: 50px; display: flex; gap: 10px; z-index: 60; }
-        .tag-live { background: #e11d48; color: white; font-weight: 900; font-size: 18px; padding: 4px 15px; border-radius: 6px; animation: pulse 2s infinite; letter-spacing: 1px; display: none; }
-        .tag-clock { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); color: white; font-weight: 800; font-size: 18px; padding: 4px 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: none; }
+        .tag-live { background: #e11d48; color: white; font-weight: 900; font-size: 18px; padding: 4px 15px; border-radius: 6px; animation: pulse 2s infinite; letter-spacing: 1px; display: none; box-shadow: none; text-shadow: none; }
+        .tag-clock { background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); color: white; font-weight: 800; font-size: 18px; padding: 4px 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: none; box-shadow: none; text-shadow: none; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
         .watermark { position: absolute; display: none; z-index: 1000; transition: all 0.5s ease; }
-        .watermark img { filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); transition: width 0.3s ease; }
+        .watermark img { filter: none; transition: width 0.3s ease; }
     </style>
 </head>
 <body>

@@ -76,7 +76,7 @@
         .zocalo-visible { opacity: 1; transform: translateY(0) scale(1); }
 
         .z-base { display: inline-flex; flex-direction: column; gap: 6px; max-width: 980px; }
-        .z-title { display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 18px; backdrop-filter: blur(16px); box-shadow: 0 16px 40px rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.16); position: relative; overflow: hidden; }
+        .z-title { display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 18px; backdrop-filter: blur(16px); box-shadow: none; border: 1px solid rgba(255,255,255,0.16); position: relative; overflow: hidden; }
         .z-title h1 { margin: 0; line-height: 0.95; font-weight: 900; letter-spacing: -1.4px; text-transform: uppercase; z-index: 1; }
         .z-sub { display: inline-flex; align-items: center; width: fit-content; padding: 7px 16px; border-radius: 999px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; position: relative; z-index: 1; }
         .z-accent-bar { width: 12px; border-radius: 999px; align-self: stretch; flex: 0 0 auto; position: relative; z-index: 1; }
@@ -93,7 +93,7 @@
         .z-neon h1 { font-size: 50px; color: white; }
         .z-neon .z-sub { background: transparent; color: white; border: 1px solid currentColor; margin-left: 16px; }
 
-        .z-box .z-title { background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: none; }
+        .z-box .z-title { background: white; border-radius: 10px; box-shadow: none; border: none; }
         .z-box h1 { font-size: 50px; color: #0f172a; }
         .z-box .z-accent-bar { background: #3b82f6 !important; width: 8px; }
         .z-box .z-sub { margin-left: 0; border-radius: 999px; color: white; background: #0f172a; margin-top: 4px; }
@@ -108,13 +108,13 @@
         .z-clean .z-accent-bar { display: none; }
         .z-clean .z-sub { background: #f97316; color: white; border-radius: 6px; margin-left: 0; }
 
-        .z-premium .z-title { background: #0f172a; border-radius: 12px; border: 3px solid; border-image: linear-gradient(to bottom right, #facc15, #a16207) 1; box-shadow: 0 20px 50px rgba(161, 98, 7, 0.4); }
+        .z-premium .z-title { background: #0f172a; border-radius: 12px; border: 3px solid; border-image: linear-gradient(to bottom right, #facc15, #a16207) 1; box-shadow: none; }
         .z-premium h1 { font-size: 50px; color: #facc15; font-weight: 800; }
         .z-premium .z-accent-bar { display: none; }
         .z-premium .z-sub { background: linear-gradient(to right, #facc15, #a16207); color: #0f172a; margin-left: 0; border-radius: 4px; font-weight: 900; letter-spacing: 2px; }
 
         .z-capsule { left: auto; right: 48px; transform-origin: bottom right; }
-        .z-capsule .z-title { border-radius: 999px; background: #bef264; border: none; box-shadow: 0 15px 35px rgba(190, 242, 100, 0.5); }
+        .z-capsule .z-title { border-radius: 999px; background: #bef264; border: none; box-shadow: none; }
         .z-capsule h1 { font-size: 45px; color: #166534; font-weight: 900; }
         .z-capsule .z-accent-bar { background: #166534 !important; }
         .z-capsule .z-sub { background: #166534; color: #bef264; border-radius: 999px; margin-left: 0; align-self: flex-end; }
@@ -126,7 +126,7 @@
 
         .z-tv-sport { display: flex; align-items: flex-end; }
         .z-tv-sport .bar-container { display: flex; flex-direction: column; gap: 0; }
-        .z-tv-sport .main-bar { background: #1a1a1a; color: white; height: 65px; display: flex; align-items: center; padding: 0 40px 0 30px; transform: skewX(-15deg); box-shadow: 10px 10px 30px rgba(0,0,0,0.5); overflow: hidden; }
+        .z-tv-sport .main-bar { background: #1a1a1a; color: white; height: 65px; display: flex; align-items: center; padding: 0 40px 0 30px; transform: skewX(-15deg); box-shadow: none; overflow: hidden; }
         .z-tv-sport .accent-block { width: fit-content; padding: 5px 20px; transform: skewX(-15deg) translateY(5px); margin-left: 10px; z-index: 2; }
         .z-tv-sport .accent-block span { display: block; transform: skewX(15deg); color: #000; font-weight: 900; font-size: 14px; text-transform: uppercase; }
         .z-tv-sport h1 { margin: 0; font-weight: 900; font-size: 42px; transform: skewX(15deg); text-transform: uppercase; letter-spacing: -1px; animation: slideUp 0.6s both 0.3s; }
@@ -509,9 +509,9 @@ function applyWebRTCUpdate(msg) {
                 if (lt.style === 'modern' || lt.style === 'ribbon') subStyles = `background: ${lt.color || '#ffcc00'};`;
                 else if (lt.style === 'glass') subStyles = `background: rgba(15,23,42,0.72); border: 1px solid rgba(255,255,255,0.16);`;
                 else if (lt.style === 'neon') {
-                    titleStyles = `color: ${lt.color || '#ffcc00'}; box-shadow: 0 0 20px ${lt.color || '#ffcc00'};`;
-                    accentStyles = `background: ${lt.color || '#ffcc00'}; box-shadow: 0 0 18px ${lt.color || '#ffcc00'};`;
-                    h1Styles = `text-shadow: 0 0 12px ${lt.color || '#ffcc00'};`;
+                    titleStyles = `color: ${lt.color || '#ffcc00'};`;
+                    accentStyles = `background: ${lt.color || '#ffcc00'};`;
+                    h1Styles = ``;
                     subStyles = `color: ${lt.color || '#ffcc00'}; border-color: ${lt.color || '#ffcc00'};`;
                 } else if (lt.style === 'box') {
                     titleStyles = `border-bottom-color: ${lt.color || '#ffcc00'};`;
